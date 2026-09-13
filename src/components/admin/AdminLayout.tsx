@@ -1,8 +1,62 @@
+import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Package, ShoppingCart, LayoutDashboard, Settings, LogOut, Camera } from 'lucide-react';
+import { Package, ShoppingCart, LayoutDashboard, Settings, LogOut, Camera, Lock } from 'lucide-react';
 
 export function AdminLayout() {
   const location = useLocation();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === 'admin123') {
+      setIsAuthenticated(true);
+      setError('');
+    } else {
+      setError('Incorrect password');
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 w-full max-w-sm">
+          <div className="flex justify-center mb-6">
+            <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center">
+              <Lock className="w-6 h-6 text-slate-900" />
+            </div>
+          </div>
+          <h1 className="text-xl font-serif text-center font-semibold text-slate-900 mb-6">Admin Access</h1>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                placeholder="Enter admin password"
+                autoFocus
+              />
+              {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-slate-900 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-slate-800 transition-colors"
+            >
+              Log In
+            </button>
+            <div className="text-center mt-4">
+              <Link to="/" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+                Return to Store
+              </Link>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   const links = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
