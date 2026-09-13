@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { CartProvider, useCart } from './CartContext';
-import { FRAMES } from './data';
 import { Header } from './components/Header';
 import { ProductGrid } from './components/ProductGrid';
 import { StoriesBar } from './components/StoriesBar';
@@ -9,6 +8,7 @@ import { Configurator } from './components/Configurator';
 import { CartSidebar } from './components/CartSidebar';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminDashboard } from './components/admin/AdminDashboard';
+import { AdminStories } from './components/admin/AdminStories';
 
 function StoreLayout() {
   const { isCartOpen, setIsCartOpen, cartItems, removeFromCart } = useCart();
@@ -46,7 +46,7 @@ export default function App() {
             <Route index element={
               <div className="animate-in fade-in duration-500">
                 <StoriesBar />
-                <ProductGrid frames={FRAMES} />
+                <ProductGrid />
               </div>
             } />
             <Route path="product/:id" element={
@@ -63,6 +63,7 @@ export default function App() {
           
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="stories" element={<AdminStories />} />
             <Route path="*" element={<div className="p-8 text-slate-500">Coming soon</div>} />
           </Route>
         </Routes>

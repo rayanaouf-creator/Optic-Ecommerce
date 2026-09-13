@@ -1,12 +1,38 @@
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { FRAMES } from '../data';
+import { useState, useEffect } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { Frame } from '../types';
 
 export function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  const frame = FRAMES.find(f => f.id === id);
+  const [frame, setFrame] = useState<Frame | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchFrame() {
+      if (!id) return;
+      try {
+        const docRef = doc(db, 'frames', id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setFrame({ id: docSnap.id, ...docSnap.data() } as Frame);
+        }
+      } catch (error) {
+        console.error('Error fetching frame:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchFrame();
+  }, [id]);
+
+  if (loading) {
+    return <div className="text-center py-20 text-slate-500">Loading product...</div>;
+  }
 
   if (!frame) {
     return <div className="text-center py-20">Product not found</div>;

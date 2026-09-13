@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Prescription, LensTreatment, EyePrescription, CartItem } from '../types';
-import { TREATMENTS, FRAMES } from '../data';
+import { Prescription, LensTreatment, EyePrescription, CartItem, Frame } from '../types';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { ArrowLeft, ArrowRight, Upload, CheckCircle2 } from 'lucide-react';
 import { useCart } from '../CartContext';
 
@@ -10,7 +11,9 @@ export function Configurator() {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   
-  const frame = FRAMES.find(f => f.id === id);
+  const [frame, setFrame] = useState<Frame | null>(null);
+  const [treatments, setTreatments] = useState<LensTreatment[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [step, setStep] = useState<1 | 2>(1);
   
@@ -23,6 +26,32 @@ export function Configurator() {
 
   // Treatments State
   const [selectedTreatments, setSelectedTreatments] = useState<string[]>(['t1']); // Default to standard
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!id) return;
+      try {
+        const frameSnap = await getDoc(doc(db, 'frames', id));
+        if (frameSnap.exists()) {
+          setFrame({ id: frameSnap.id, ...frameSnap.data() } as Frame);
+        }
+
+        const treatmentsSnap = await getDocs(collection(db, 'treatments'));
+        const tData = treatmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as LensTreatment));
+        setTreatments(tData);
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [id]);
+
+  if (loading) {
+    return <div className="text-center py-20 text-slate-500">Loading configuration...</div>;
+  }
 
   if (!frame) {
     return <div className="text-center py-20">Product not found</div>;
@@ -40,15 +69,15 @@ export function Configurator() {
         rx = { type: 'none' };
       }
       
-      const treatments = TREATMENTS.filter(t => selectedTreatments.includes(t.id));
+      const chosenTreatments = treatments.filter(t => selectedTreatments.includes(t.id));
       
       // Add to cart logic
-      const treatmentsPrice = treatments.reduce((sum, t) => sum + t.price, 0);
+      const treatmentsPrice = chosenTreatments.reduce((sum, t) => sum + t.price, 0);
       const newItem: CartItem = {
         id: Math.random().toString(36).substr(2, 9),
         frame,
         prescription: rx,
-        treatments,
+        treatments: chosenTreatments,
         totalPrice: frame.price + treatmentsPrice,
       };
 
@@ -202,7 +231,7 @@ export function Configurator() {
           <p className="text-slate-500 mb-8">Customize your lenses for optimal clarity and protection.</p>
 
           <div className="space-y-4">
-            {TREATMENTS.map(treatment => {
+            {treatments.map(treatment => {
               const isSelected = selectedTreatments.includes(treatment.id);
               // Make standard mutually exclusive or just add on?
               // Assuming treatment 1 is base, others are add-ons. 

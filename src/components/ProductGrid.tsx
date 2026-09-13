@@ -1,17 +1,36 @@
 import { Frame } from '../types';
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
-interface ProductGridProps {
-  frames: Frame[];
-}
+export function ProductGrid() {
+  const [frames, setFrames] = useState<Frame[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export function ProductGrid({ frames }: ProductGridProps) {
+  useEffect(() => {
+    async function fetchFrames() {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'frames'));
+        const framesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Frame));
+        setFrames(framesData);
+      } catch (error) {
+        console.error('Error fetching frames:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchFrames();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center py-20 text-slate-500">Loading collection...</div>;
+  }
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
       <div className="flex items-end justify-between mb-8">
         <div>
           <h2 className="font-serif text-3xl text-slate-900 mb-2">Optical Frames</h2>
-          <p className="text-slate-500">Discover our signature collection of handcrafted eyewear.</p>
         </div>
       </div>
 

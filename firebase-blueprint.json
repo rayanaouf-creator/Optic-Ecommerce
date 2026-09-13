@@ -1,0 +1,74 @@
+{
+  "projectInfo": {
+    "name": "Optica Store"
+  },
+  "collections": [
+    {
+      "name": "frames",
+      "description": "Store optical frames",
+      "fields": [
+        { "name": "name", "type": "string" },
+        { "name": "brand", "type": "string" },
+        { "name": "price", "type": "number" },
+        { "name": "image", "type": "string" },
+        { "name": "category", "type": "string" },
+        { "name": "shape", "type": "string" },
+        { "name": "colors", "type": "array", "items": { "type": "string" } }
+      ],
+      "rules": {
+        "read": "true",
+        "create": "false",
+        "update": "false",
+        "delete": "false"
+      }
+    },
+    {
+      "name": "treatments",
+      "description": "Store lens treatments",
+      "fields": [
+        { "name": "name", "type": "string" },
+        { "name": "description", "type": "string" },
+        { "name": "price", "type": "number" }
+      ],
+      "rules": {
+        "read": "true",
+        "create": "false",
+        "update": "false",
+        "delete": "false"
+      }
+    },
+    {
+      "name": "stories",
+      "description": "Store Sold items with old and new prices",
+      "fields": [
+        { "name": "title", "type": "string" },
+        { "name": "image", "type": "string" },
+        { "name": "oldPrice", "type": "number" },
+        { "name": "newPrice", "type": "number" }
+      ],
+      "rules": {
+        "read": "true",
+        "create": "false",
+        "update": "false",
+        "delete": "false"
+      }
+    },
+    {
+      "name": "orders",
+      "description": "Store customer orders",
+      "fields": [
+        { "name": "customerName", "type": "string" },
+        { "name": "status", "type": "string" },
+        { "name": "totalAmount", "type": "number" },
+        { "name": "createdAt", "type": "timestamp" },
+        { "name": "items", "type": "array" }
+      ],
+      "rules": {
+        "read": "true",
+        "create": "true",
+        "update": "false",
+        "delete": "false"
+      }
+    }
+  ]
+}
