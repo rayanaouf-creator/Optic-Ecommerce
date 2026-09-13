@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import { Frame, Prescription, LensTreatment, EyePrescription } from '../types';
-import { TREATMENTS } from '../data';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Prescription, LensTreatment, EyePrescription, CartItem } from '../types';
+import { TREATMENTS, FRAMES } from '../data';
 import { ArrowLeft, ArrowRight, Upload, CheckCircle2 } from 'lucide-react';
+import { useCart } from '../CartContext';
 
-interface ConfiguratorProps {
-  frame: Frame;
-  onCancel: () => void;
-  onComplete: (prescription: Prescription, treatments: LensTreatment[]) => void;
-}
+export function Configurator() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
+  
+  const frame = FRAMES.find(f => f.id === id);
 
-export function Configurator({ frame, onCancel, onComplete }: ConfiguratorProps) {
   const [step, setStep] = useState<1 | 2>(1);
   
   // Prescription State
@@ -21,6 +23,10 @@ export function Configurator({ frame, onCancel, onComplete }: ConfiguratorProps)
 
   // Treatments State
   const [selectedTreatments, setSelectedTreatments] = useState<string[]>(['t1']); // Default to standard
+
+  if (!frame) {
+    return <div className="text-center py-20">Product not found</div>;
+  }
 
   const handleNext = () => {
     if (step === 1) setStep(2);
@@ -35,13 +41,25 @@ export function Configurator({ frame, onCancel, onComplete }: ConfiguratorProps)
       }
       
       const treatments = TREATMENTS.filter(t => selectedTreatments.includes(t.id));
-      onComplete(rx, treatments);
+      
+      // Add to cart logic
+      const treatmentsPrice = treatments.reduce((sum, t) => sum + t.price, 0);
+      const newItem: CartItem = {
+        id: Math.random().toString(36).substr(2, 9),
+        frame,
+        prescription: rx,
+        treatments,
+        totalPrice: frame.price + treatmentsPrice,
+      };
+
+      addToCart(newItem);
+      navigate('/');
     }
   };
 
-  const toggleTreatment = (id: string) => {
+  const toggleTreatment = (tid: string) => {
     setSelectedTreatments(prev => 
-      prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
+      prev.includes(tid) ? prev.filter(t => t !== tid) : [...prev, tid]
     );
   };
 
@@ -49,7 +67,7 @@ export function Configurator({ frame, onCancel, onComplete }: ConfiguratorProps)
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
       <div className="mb-8">
         <button 
-          onClick={step === 1 ? onCancel : () => setStep(1)}
+          onClick={step === 1 ? () => navigate(-1) : () => setStep(1)}
           className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />

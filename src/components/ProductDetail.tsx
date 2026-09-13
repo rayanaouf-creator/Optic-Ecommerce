@@ -1,21 +1,25 @@
-import { Frame } from '../types';
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { FRAMES } from '../data';
 
-interface ProductDetailProps {
-  frame: Frame;
-  onBack: () => void;
-  onStartConfig: (frame: Frame) => void;
-}
+export function ProductDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  
+  const frame = FRAMES.find(f => f.id === id);
 
-export function ProductDetail({ frame, onBack, onStartConfig }: ProductDetailProps) {
+  if (!frame) {
+    return <div className="text-center py-20">Product not found</div>;
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       <button 
-        onClick={onBack}
+        onClick={() => navigate(-1)}
         className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors mb-8"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Collection
+        Back
       </button>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
@@ -53,12 +57,12 @@ export function ProductDetail({ frame, onBack, onStartConfig }: ProductDetailPro
           </div>
 
           <div className="flex flex-col gap-4">
-            <button 
-              onClick={() => onStartConfig(frame)}
-              className="w-full bg-slate-900 text-white py-4 rounded-xl font-medium hover:bg-slate-800 transition-colors"
+            <Link 
+              to={`/configurator/${frame.id}`}
+              className="w-full bg-slate-900 text-white py-4 rounded-xl font-medium hover:bg-slate-800 transition-colors text-center"
             >
               Select Lenses & Add to Cart
-            </button>
+            </Link>
           </div>
 
           <div className="mt-8 pt-8 border-t border-slate-100 space-y-4">
