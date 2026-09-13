@@ -1,21 +1,35 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { initAuth, googleSignIn, getAccessToken, logout } from '../../lib/auth';
 import { Story } from '../../types';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, LogIn, LogOut, Upload } from 'lucide-react';
 
 export function AdminStories() {
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Auth state
+  const [needsAuth, setNeedsAuth] = useState(true);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
   // Form state
-  const [image, setImage] = useState('');
+  const [file, setFile] = useState<File | null>(null);
   const [oldPrice, setOldPrice] = useState('');
   const [newPrice, setNewPrice] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
 
   useEffect(() => {
     fetchStories();
+    
+    // Initialize auth
+    const unsubscribe = initAuth(
+      () => setNeedsAuth(false),
+      () => setNeedsAuth(true)
+    );
+
+    return () => unsubscribe();
   }, []);
 
   async function fetchStories() {
@@ -30,15 +44,88 @@ export function AdminStories() {
     }
   }
 
+  const handleLogin = async () => {
+    setIsLoggingIn(true);
+    try {
+      await googleSignIn();
+      setNeedsAuth(false);
+    } catch (err) {
+      console.error('Login failed:', err);
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+  
+  const handleLogout = async () => {
+    await logout();
+    setNeedsAuth(true);
+  };
+
+  const uploadToDrive = async (fileToUpload: File): Promise<string> => {
+    const token = await getAccessToken();
+    if (!token) throw new Error("Not authenticated");
+
+    setUploadProgress('Uploading to Google Drive...');
+
+    const metadata = {
+      name: fileToUpload.name,
+      mimeType: fileToUpload.type,
+    };
+
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', fileToUpload);
+
+    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: form
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+
+    const fileId = data.id;
+
+    setUploadProgress('Making file public...');
+    await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        role: 'reader',
+        type: 'anyone'
+      })
+    });
+
+    setUploadProgress('Finalizing...');
+    const metaRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=thumbnailLink,webContentLink`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    const metaData = await metaRes.json();
+    if (metaData.thumbnailLink) {
+      return metaData.thumbnailLink.replace(/=s\d+/, '=s800');
+    }
+    return metaData.webContentLink;
+  };
+
   async function handleAddStory(e: React.FormEvent) {
     e.preventDefault();
-    if (!image || !oldPrice || !newPrice) return;
+    if (!file || !oldPrice || !newPrice) return;
     
     setSubmitting(true);
     try {
+      const publicImageUrl = await uploadToDrive(file);
+
+      setUploadProgress('Saving record...');
       const newStory = {
         title: 'Sold', // Hardcoded as per requirements
-        image,
+        image: publicImageUrl,
         oldPrice: Number(oldPrice),
         newPrice: Number(newPrice)
       };
@@ -47,11 +134,18 @@ export function AdminStories() {
       setStories([...stories, { id: docRef.id, ...newStory }]);
       
       // Reset form
-      setImage('');
+      setFile(null);
       setOldPrice('');
       setNewPrice('');
+      setUploadProgress('');
+      // reset file input
+      const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+
     } catch (error) {
       console.error('Error adding story:', error);
+      alert('Failed to upload image. Please ensure you have signed in and granted Drive permissions.');
+      setUploadProgress('');
     } finally {
       setSubmitting(false);
     }
@@ -75,56 +169,92 @@ export function AdminStories() {
   return (
     <div className="space-y-8">
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Add New Sold Item</h2>
-        <form onSubmit={handleAddStory} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-          <div className="col-span-1 md:col-span-2">
-            <label className="block text-sm font-medium text-slate-700 mb-1">Image URL</label>
-            <input 
-              type="url" 
-              required
-              value={image}
-              onChange={e => setImage(e.target.value)}
-              placeholder="https://images.unsplash.com/..."
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Old Price ($)</label>
-            <input 
-              type="number" 
-              required
-              min="0"
-              step="1"
-              value={oldPrice}
-              onChange={e => setOldPrice(e.target.value)}
-              placeholder="180"
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">New Price ($)</label>
-            <input 
-              type="number" 
-              required
-              min="0"
-              step="1"
-              value={newPrice}
-              onChange={e => setNewPrice(e.target.value)}
-              placeholder="120"
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-            />
-          </div>
-          <div className="col-span-1 md:col-span-4 mt-2">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-slate-900">Add New Sold Item</h2>
+          
+          {needsAuth ? (
             <button 
-              type="submit" 
-              disabled={submitting}
-              className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors disabled:opacity-50"
+              onClick={handleLogin}
+              disabled={isLoggingIn}
+              className="flex items-center gap-2 bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm"
             >
-              <Plus className="w-4 h-4" />
-              {submitting ? 'Adding...' : 'Add Sold Item'}
+              {isLoggingIn ? 'Signing in...' : (
+                <>
+                  <LogIn className="w-4 h-4" />
+                  Sign in to Google Drive
+                </>
+              )}
             </button>
+          ) : (
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign out Drive
+            </button>
+          )}
+        </div>
+
+        {needsAuth ? (
+          <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            <Upload className="w-8 h-8 text-slate-400 mx-auto mb-3" />
+            <p className="text-sm text-slate-600 max-w-md mx-auto">
+              Please sign in with Google Drive to upload photos for sold items.
+            </p>
           </div>
-        </form>
+        ) : (
+          <form onSubmit={handleAddStory} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+            <div className="col-span-1 md:col-span-2">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Photo</label>
+              <input 
+                id="file-upload"
+                type="file" 
+                accept="image/*"
+                required
+                onChange={e => setFile(e.target.files?.[0] || null)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Old Price ($)</label>
+              <input 
+                type="number" 
+                required
+                min="0"
+                step="1"
+                value={oldPrice}
+                onChange={e => setOldPrice(e.target.value)}
+                placeholder="180"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">New Price ($)</label>
+              <input 
+                type="number" 
+                required
+                min="0"
+                step="1"
+                value={newPrice}
+                onChange={e => setNewPrice(e.target.value)}
+                placeholder="120"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+              />
+            </div>
+            <div className="col-span-1 md:col-span-4 mt-2 flex items-center justify-between">
+              <span className="text-sm text-blue-600 font-medium">{uploadProgress}</span>
+              <button 
+                type="submit" 
+                disabled={submitting || !file}
+                className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors disabled:opacity-50 ml-auto"
+              >
+                <Plus className="w-4 h-4" />
+                {submitting ? 'Uploading...' : 'Upload & Add'}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

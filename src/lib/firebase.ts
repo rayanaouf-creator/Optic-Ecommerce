@@ -13,4 +13,4 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app, "ai-studio-opticapremiumeye-f9660ced-81a0-46d2-bef8-46e4d5cb13a0");
 
-export { db };
+export { app, db };
