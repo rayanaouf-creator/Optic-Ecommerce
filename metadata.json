@@ -1,0 +1,6 @@
+{
+  "name": "Optica - Premium Eyewear",
+  "description": "An e-commerce storefront for optical frames with virtual try-on, prescription entry, and custom lens treatments.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
