@@ -11,6 +11,8 @@ import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { AdminStories } from './components/admin/AdminStories';
 import { AdminBrands } from './components/admin/AdminBrands';
+import { AdminFrames } from './components/admin/AdminFrames';
+import { AdminOrders } from './components/admin/AdminOrders';
 
 function StoreLayout() {
   const { isCartOpen, setIsCartOpen, cartItems, removeFromCart } = useCart();
@@ -66,6 +68,8 @@ export default function App() {
           
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="products" element={<AdminFrames />} />
             <Route path="stories" element={<AdminStories />} />
             <Route path="brands" element={<AdminBrands />} />
             <Route path="*" element={<div className="p-8 text-slate-500">Coming soon</div>} />

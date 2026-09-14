@@ -1,3 +1,4 @@
+import React from "react";
 import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Package, ShoppingCart, LayoutDashboard, Settings, LogOut, Camera, Lock } from 'lucide-react';

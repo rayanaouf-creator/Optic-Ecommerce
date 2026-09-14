@@ -30,7 +30,7 @@ export function ProductGrid() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
       <div className="flex items-end justify-between mb-8">
         <div>
-          <h2 className="font-serif text-3xl text-slate-900 mb-2">Optical Frames</h2>
+          <h2 className="text-xs font-semibold text-slate-400 tracking-[0.2em] uppercase">Items</h2>
         </div>
       </div>
 

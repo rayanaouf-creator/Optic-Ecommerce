@@ -21,9 +21,9 @@ export function StoriesBar() {
 
   return (
     <div className="w-full bg-slate-50 border-b border-slate-200/50 pt-12 pb-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-6">
         <div>
-          <h2 className="font-serif text-3xl text-slate-900 mb-2">Sold</h2>
+          <h2 className="text-xs font-semibold text-slate-400 tracking-[0.2em] uppercase">Sold</h2>
         </div>
       </div>
       <div className="w-full overflow-x-auto hide-scrollbar pb-2">
