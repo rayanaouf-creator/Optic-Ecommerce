@@ -1,33 +1,32 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { Story } from '../../types';
+import { Brand } from '../../types';
 import { Trash2, Plus, Upload, Link as LinkIcon } from 'lucide-react';
 
-export function AdminStories() {
-  const [stories, setStories] = useState<Story[]>([]);
+export function AdminBrands() {
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Form state
   const [inputType, setInputType] = useState<'upload' | 'url'>('upload');
   const [imageUrl, setImageUrl] = useState('');
   const [file, setFile] = useState<File | null>(null);
-  const [oldPrice, setOldPrice] = useState('');
-  const [newPrice, setNewPrice] = useState('');
+  const [name, setName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
 
   useEffect(() => {
-    fetchStories();
+    fetchBrands();
   }, []);
 
-  async function fetchStories() {
+  async function fetchBrands() {
     try {
-      const querySnapshot = await getDocs(collection(db, 'stories'));
-      const storiesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Story));
-      setStories(storiesData);
+      const querySnapshot = await getDocs(collection(db, 'brands'));
+      const brandsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Brand));
+      setBrands(brandsData);
     } catch (error) {
-      console.error('Error fetching stories:', error);
+      console.error('Error fetching brands:', error);
     } finally {
       setLoading(false);
     }
@@ -47,10 +46,10 @@ export function AdminStories() {
     return data.url;
   };
 
-  async function handleAddStory(e: React.FormEvent) {
+  async function handleAddBrand(e: React.FormEvent) {
     e.preventDefault();
     if ((inputType === 'upload' && !file) || (inputType === 'url' && !imageUrl)) return;
-    if (!oldPrice || !newPrice) return;
+    if (!name) return;
     
     setSubmitting(true);
     try {
@@ -62,27 +61,24 @@ export function AdminStories() {
       }
 
       setUploadProgress('Saving record...');
-      const newStory = {
-        title: 'Sold', // Hardcoded as per requirements
+      const newBrand = {
+        name,
         image: finalImageUrl,
-        oldPrice: Number(oldPrice),
-        newPrice: Number(newPrice)
       };
       
-      const docRef = await addDoc(collection(db, 'stories'), newStory);
-      setStories([...stories, { id: docRef.id, ...newStory }]);
+      const docRef = await addDoc(collection(db, 'brands'), newBrand);
+      setBrands([...brands, { id: docRef.id, ...newBrand }]);
       
       // Reset form
       setFile(null);
       setImageUrl('');
-      setOldPrice('');
-      setNewPrice('');
+      setName('');
       setUploadProgress('');
       const fileInput = document.getElementById('file-upload') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
 
     } catch (error) {
-      console.error('Error adding story:', error);
+      console.error('Error adding brand:', error);
       alert('Failed to save image.');
       setUploadProgress('');
     } finally {
@@ -91,28 +87,28 @@ export function AdminStories() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm('Are you sure you want to delete this sold item?')) return;
+    if (!window.confirm('Are you sure you want to delete this brand?')) return;
     
     try {
-      await deleteDoc(doc(db, 'stories', id));
-      setStories(stories.filter(s => s.id !== id));
+      await deleteDoc(doc(db, 'brands', id));
+      setBrands(brands.filter(b => b.id !== id));
     } catch (error) {
-      console.error('Error deleting story:', error);
+      console.error('Error deleting brand:', error);
     }
   }
 
   if (loading) {
-    return <div className="text-slate-500">Loading stories...</div>;
+    return <div className="text-slate-500">Loading brands...</div>;
   }
 
   return (
     <div className="space-y-8">
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-slate-900">Add New Sold Item</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Add New Featured Brand</h2>
         </div>
 
-        <form onSubmit={handleAddStory} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+        <form onSubmit={handleAddBrand} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
           <div className="col-span-1 md:col-span-2 space-y-3">
             <div className="flex gap-4 border-b border-slate-200 pb-2">
               <button
@@ -147,7 +143,7 @@ export function AdminStories() {
                   onChange={e => setFile(e.target.files?.[0] || null)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                 />
-                <p className="text-xs text-slate-500 mt-1">Image will be optimized and saved to database.</p>
+                <p className="text-xs text-slate-500 mt-1">Image will be uploaded to Google Drive and saved.</p>
               </div>
             ) : (
               <div>
@@ -156,39 +152,25 @@ export function AdminStories() {
                   required={inputType === 'url'}
                   value={imageUrl}
                   onChange={e => setImageUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg or /assets/my-image.jpg"
+                  placeholder="https://example.com/logo.jpg or /assets/logo.jpg"
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                 />
               </div>
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Old Price ($)</label>
+          <div className="col-span-1 md:col-span-2">
+            <label className="block text-sm font-medium text-slate-700 mb-1">Brand Name</label>
             <input 
-              type="number" 
+              type="text" 
               required
-              min="0"
-              step="1"
-              value={oldPrice}
-              onChange={e => setOldPrice(e.target.value)}
-              placeholder="180"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="e.g. Ray-Ban"
               className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">New Price ($)</label>
-            <input 
-              type="number" 
-              required
-              min="0"
-              step="1"
-              value={newPrice}
-              onChange={e => setNewPrice(e.target.value)}
-              placeholder="120"
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-            />
-          </div>
+
           <div className="col-span-1 md:col-span-4 mt-2 flex items-center justify-between">
             <span className="text-sm text-blue-600 font-medium">{uploadProgress}</span>
             <button 
@@ -197,7 +179,7 @@ export function AdminStories() {
               className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors disabled:opacity-50 ml-auto"
             >
               <Plus className="w-4 h-4" />
-              {submitting ? 'Saving...' : 'Save Item'}
+              {submitting ? 'Saving...' : 'Save Brand'}
             </button>
           </div>
         </form>
@@ -208,40 +190,36 @@ export function AdminStories() {
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200 text-sm font-medium text-slate-500">
               <th className="px-6 py-4 font-medium">Image</th>
-              <th className="px-6 py-4 font-medium">Title</th>
-              <th className="px-6 py-4 font-medium">Old Price</th>
-              <th className="px-6 py-4 font-medium">New Price</th>
+              <th className="px-6 py-4 font-medium">Name</th>
               <th className="px-6 py-4 font-medium text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
-            {stories.map(story => (
-              <tr key={story.id} className="hover:bg-slate-50/50">
+            {brands.map(brand => (
+              <tr key={brand.id} className="hover:bg-slate-50/50">
                 <td className="px-6 py-4">
                   <div className="w-12 h-12 rounded-full overflow-hidden border border-slate-200">
-                    <img src={story.image} alt="Sold item" className="w-full h-full object-cover" />
+                    <img src={brand.image} alt={brand.name} className="w-full h-full object-cover" />
                   </div>
                 </td>
                 <td className="px-6 py-4 text-slate-900 font-medium">
-                  {story.title}
+                  {brand.name}
                 </td>
-                <td className="px-6 py-4 text-slate-500 line-through">${story.oldPrice}</td>
-                <td className="px-6 py-4 text-slate-900 font-medium">${story.newPrice}</td>
                 <td className="px-6 py-4 text-right">
                   <button 
-                    onClick={() => handleDelete(story.id)}
+                    onClick={() => handleDelete(brand.id)}
                     className="text-red-500 hover:text-red-700 transition-colors p-2"
-                    title="Delete story"
+                    title="Delete brand"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </td>
               </tr>
             ))}
-            {stories.length === 0 && (
+            {brands.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
-                  No sold items found. Add one above.
+                <td colSpan={3} className="px-6 py-8 text-center text-slate-500">
+                  No brands found. Add one above.
                 </td>
               </tr>
             )}

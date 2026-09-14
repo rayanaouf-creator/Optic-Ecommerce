@@ -63,6 +63,7 @@ export function AdminLayout() {
     { name: 'Orders', path: '/admin/orders', icon: ShoppingCart },
     { name: 'Products', path: '/admin/products', icon: Package },
     { name: 'Sold Stories', path: '/admin/stories', icon: Camera },
+    { name: 'Featured Brands', path: '/admin/brands', icon: Package },
     { name: 'Settings', path: '/admin/settings', icon: Settings },
   ];
 

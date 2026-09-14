@@ -17,6 +17,12 @@ export interface Prescription {
   pd?: number; // Pupillary Distance
 }
 
+export interface Brand {
+  id: string;
+  name: string;
+  image: string;
+}
+
 export interface Story {
   id: string;
   title: string;

@@ -3,12 +3,14 @@ import { CartProvider, useCart } from './CartContext';
 import { Header } from './components/Header';
 import { ProductGrid } from './components/ProductGrid';
 import { StoriesBar } from './components/StoriesBar';
+import { BrandsSection } from './components/BrandsSection';
 import { ProductDetail } from './components/ProductDetail';
 import { Configurator } from './components/Configurator';
 import { CartSidebar } from './components/CartSidebar';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { AdminStories } from './components/admin/AdminStories';
+import { AdminBrands } from './components/admin/AdminBrands';
 
 function StoreLayout() {
   const { isCartOpen, setIsCartOpen, cartItems, removeFromCart } = useCart();
@@ -46,6 +48,7 @@ export default function App() {
             <Route index element={
               <div className="animate-in fade-in duration-500">
                 <StoriesBar />
+                <BrandsSection />
                 <ProductGrid />
               </div>
             } />
@@ -64,6 +67,7 @@ export default function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="stories" element={<AdminStories />} />
+            <Route path="brands" element={<AdminBrands />} />
             <Route path="*" element={<div className="p-8 text-slate-500">Coming soon</div>} />
           </Route>
         </Routes>

@@ -9,6 +9,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+    match /brands/{brandId} {
+      allow read: if true;
+      allow write: if true;
+    }
     match /stories/{storyId} {
       allow read: if true;
       allow write: if true;
