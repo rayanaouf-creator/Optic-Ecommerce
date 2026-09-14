@@ -1,8 +1,10 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
-const db = (firebaseConfig as any).databaseId ? getFirestore(app, (firebaseConfig as any).databaseId) : getFirestore(app);
+const db = (firebaseConfig as any).firestoreDatabaseId ? getFirestore(app, (firebaseConfig as any).firestoreDatabaseId) : getFirestore(app);
+const storage = getStorage(app);
 
-export { app, db };
+export { app, db, storage };

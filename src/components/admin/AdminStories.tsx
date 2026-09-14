@@ -3,7 +3,7 @@ import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore'
 import { db } from '../../lib/firebase';
 import { Story } from '../../types';
 import { Trash2, Plus, Upload, Link as LinkIcon } from 'lucide-react';
-import { uploadFiles } from '../../lib/uploadthing';
+import { compressImage } from '../../lib/imageUtils';
 
 export function AdminStories() {
   const [stories, setStories] = useState<Story[]>([]);
@@ -35,15 +35,7 @@ export function AdminStories() {
   }
 
   const uploadToServer = async (file: File): Promise<string> => {
-    const res = await uploadFiles("imageUploader", {
-      files: [file],
-    });
-    
-    if (res && res.length > 0) {
-      return res[0].url;
-    }
-    
-    throw new Error('Failed to upload file');
+    return compressImage(file, 800, 0.7);
   };
 
   async function handleAddStory(e: React.FormEvent) {
@@ -53,7 +45,7 @@ export function AdminStories() {
     
     setSubmitting(true);
     try {
-      setUploadProgress('Uploading to UploadThing...');
+      setUploadProgress('Processing image...');
       let finalImageUrl = imageUrl;
       
       if (inputType === 'upload' && file) {
@@ -82,7 +74,7 @@ export function AdminStories() {
 
     } catch (error) {
       console.error('Error adding story:', error);
-      alert('Failed to save image.');
+      alert('Failed to save image. It might be too large even after compression.');
       setUploadProgress('');
     } finally {
       setSubmitting(false);

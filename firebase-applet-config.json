@@ -1,11 +1,12 @@
 {
-  "projectId": "gen-lang-client-0531280527",
-  "appId": "1:56115432077:web:0f2e8295e63dbd2c2ef0c4",
-  "apiKey": "AIzaSyCqXKXYd4T3SG53KDauYay_5pPfPx9PE-Q",
-  "authDomain": "gen-lang-client-0531280527.firebaseapp.com",
-  "storageBucket": "gen-lang-client-0531280527.firebasestorage.app",
-  "messagingSenderId": "56115432077",
+  "projectId": "gen-lang-client-0343806632",
+  "appId": "1:860983179239:web:7ab1c719d026f1073a6f42",
+  "apiKey": "AIzaSyA1xl28dy35Y4EC_zdjfe2UT1SGokHFMKU",
+  "authDomain": "gen-lang-client-0343806632.firebaseapp.com",
+  "storageBucket": "gen-lang-client-0343806632.firebasestorage.app",
+  "messagingSenderId": "860983179239",
   "measurementId": "",
-  "oAuthClientId": "56115432077-uaoksmajd4u93dg0ouqeoq89p33nl893.apps.googleusercontent.com",
-  "recaptchaSiteKey": ""
+  "oAuthClientId": "",
+  "recaptchaSiteKey": "",
+  "firestoreDatabaseId": "ai-studio-opticapremiumeye-f9660ced-81a0-46d2-bef8-46e4d5cb13a0"
 }

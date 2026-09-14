@@ -3,7 +3,7 @@ import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore'
 import { db } from '../../lib/firebase';
 import { Brand } from '../../types';
 import { Trash2, Plus, Upload, Link as LinkIcon } from 'lucide-react';
-import { uploadFiles } from '../../lib/uploadthing';
+import { compressImage } from '../../lib/imageUtils';
 
 export function AdminBrands() {
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -34,15 +34,7 @@ export function AdminBrands() {
   }
 
   const uploadToServer = async (file: File): Promise<string> => {
-    const res = await uploadFiles("imageUploader", {
-      files: [file],
-    });
-    
-    if (res && res.length > 0) {
-      return res[0].url;
-    }
-    
-    throw new Error('Failed to upload file');
+    return compressImage(file, 600, 0.8);
   };
 
   async function handleAddBrand(e: React.FormEvent) {
@@ -52,7 +44,7 @@ export function AdminBrands() {
     
     setSubmitting(true);
     try {
-      setUploadProgress('Uploading to UploadThing...');
+      setUploadProgress('Processing image...');
       let finalImageUrl = imageUrl;
       
       if (inputType === 'upload' && file) {
@@ -78,7 +70,7 @@ export function AdminBrands() {
 
     } catch (error) {
       console.error('Error adding brand:', error);
-      alert('Failed to save image.');
+      alert('Failed to save image. It might be too large even after compression.');
       setUploadProgress('');
     } finally {
       setSubmitting(false);
