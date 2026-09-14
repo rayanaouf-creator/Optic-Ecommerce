@@ -1,5 +1,6 @@
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { OrderModal } from './OrderModal';
 import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -11,6 +12,7 @@ export function ProductDetail() {
   
   const [frame, setFrame] = useState<Frame | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchFrame() {
@@ -83,12 +85,12 @@ export function ProductDetail() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <Link 
-              to={`/configurator/${frame.id}`}
+            <button 
+              onClick={() => setIsOrderModalOpen(true)}
               className="w-full bg-slate-900 text-white py-4 rounded-xl font-medium hover:bg-slate-800 transition-colors text-center"
             >
-              Select Lenses & Add to Cart
-            </Link>
+              Order Now
+            </button>
           </div>
 
           <div className="mt-8 pt-8 border-t border-slate-100 space-y-4">
@@ -102,6 +104,13 @@ export function ProductDetail() {
           </div>
         </div>
       </div>
+      {frame && (
+        <OrderModal 
+          isOpen={isOrderModalOpen} 
+          onClose={() => setIsOrderModalOpen(false)} 
+          frame={frame} 
+        />
+      )}
     </div>
   );
 }

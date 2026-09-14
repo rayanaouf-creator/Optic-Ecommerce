@@ -1,12 +1,9 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
-import { CartProvider, useCart } from './CartContext';
 import { Header } from './components/Header';
 import { ProductGrid } from './components/ProductGrid';
 import { StoriesBar } from './components/StoriesBar';
 import { BrandsSection } from './components/BrandsSection';
 import { ProductDetail } from './components/ProductDetail';
-import { Configurator } from './components/Configurator';
-import { CartSidebar } from './components/CartSidebar';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { AdminStories } from './components/admin/AdminStories';
@@ -15,7 +12,6 @@ import { AdminFrames } from './components/admin/AdminFrames';
 import { AdminOrders } from './components/admin/AdminOrders';
 
 function StoreLayout() {
-  const { isCartOpen, setIsCartOpen, cartItems, removeFromCart } = useCart();
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -31,20 +27,14 @@ function StoreLayout() {
         </div>
       </footer>
 
-      <CartSidebar 
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onRemoveItem={removeFromCart}
-      />
+
     </div>
   );
 }
 
 export default function App() {
   return (
-    <CartProvider>
-      <BrowserRouter>
+          <BrowserRouter>
         <Routes>
           <Route path="/" element={<StoreLayout />}>
             <Route index element={
@@ -59,11 +49,6 @@ export default function App() {
                 <ProductDetail />
               </div>
             } />
-            <Route path="configurator/:id" element={
-              <div className="animate-in fade-in slide-in-from-right-8 duration-500">
-                <Configurator />
-              </div>
-            } />
           </Route>
           
           <Route path="/admin" element={<AdminLayout />}>
@@ -76,6 +61,5 @@ export default function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-    </CartProvider>
   );
 }
