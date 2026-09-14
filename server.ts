@@ -1,91 +1,32 @@
 import express from 'express';
 import path from 'path';
-import multer from 'multer';
-import { google } from 'googleapis';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
-import { Readable } from 'stream';
+import { createUploadthing, type FileRouter } from "uploadthing/express";
+import { createRouteHandler } from "uploadthing/express";
 
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
 
-// Configure multer for memory storage
-const upload = multer({ storage: multer.memoryStorage() });
+const f = createUploadthing();
 
-// Upload to Google Drive
-app.post('/api/upload-drive', upload.single('file'), async (req, res) => {
-  try {
-    const file = req.file;
-    if (!file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
+export const uploadRouter = {
+  imageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+    .onUploadComplete((data) => {
+      console.log("Upload complete:", data.file.url);
+    }),
+} satisfies FileRouter;
 
-    const { GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_DRIVE_FOLDER_ID } = process.env;
+export type OurFileRouter = typeof uploadRouter;
 
-    if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_PRIVATE_KEY || !GOOGLE_DRIVE_FOLDER_ID) {
-      return res.status(500).json({ error: 'Google Drive credentials not configured on the server. Please check your environment variables.' });
-    }
-
-    // Authenticate with Service Account
-    const auth = new google.auth.JWT(
-      GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      undefined,
-      GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Handle newlines in the key
-      ['https://www.googleapis.com/auth/drive.file']
-    );
-
-    const drive = google.drive({ version: 'v3', auth });
-
-    // Define file metadata and target folder
-    const fileMetadata = {
-      name: file.originalname,
-      parents: [GOOGLE_DRIVE_FOLDER_ID],
-    };
-
-    // Define media
-    const media = {
-      mimeType: file.mimetype,
-      body: Readable.from(file.buffer),
-    };
-
-    // Upload to drive
-    const response = await drive.files.create({
-      requestBody: fileMetadata,
-      media: media,
-      fields: 'id',
-    });
-    
-    if (!response.data.id) throw new Error("Failed to get file ID from Google Drive");
-
-    // Make the file publicly readable so it can be displayed in the app
-    await drive.permissions.create({
-      fileId: response.data.id,
-      requestBody: {
-        role: 'reader',
-        type: 'anyone',
-      },
-    });
-    
-    // Get the webContentLink and thumbnailLink
-    const metaRes = await drive.files.get({
-        fileId: response.data.id,
-        fields: 'thumbnailLink, webContentLink'
-    });
-
-    // Use thumbnail link for better performance, fallback to content link
-    let imageUrl = metaRes.data.webContentLink;
-    if (metaRes.data.thumbnailLink) {
-        imageUrl = metaRes.data.thumbnailLink.replace(/=s\d+/, '=s800');
-    }
-
-    res.json({ url: imageUrl });
-  } catch (error: any) {
-    console.error('Drive upload error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+app.use(
+  "/api/uploadthing",
+  createRouteHandler({
+    router: uploadRouter,
+  })
+);
 
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {

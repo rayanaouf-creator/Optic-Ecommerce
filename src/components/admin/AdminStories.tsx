@@ -3,6 +3,7 @@ import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore'
 import { db } from '../../lib/firebase';
 import { Story } from '../../types';
 import { Trash2, Plus, Upload, Link as LinkIcon } from 'lucide-react';
+import { uploadFiles } from '../../lib/uploadthing';
 
 export function AdminStories() {
   const [stories, setStories] = useState<Story[]>([]);
@@ -34,17 +35,15 @@ export function AdminStories() {
   }
 
   const uploadToServer = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    const res = await fetch('/api/upload-drive', {
-      method: 'POST',
-      body: formData,
+    const res = await uploadFiles("imageUploader", {
+      files: [file],
     });
     
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to upload');
-    return data.url;
+    if (res && res.length > 0) {
+      return res[0].url;
+    }
+    
+    throw new Error('Failed to upload file');
   };
 
   async function handleAddStory(e: React.FormEvent) {
@@ -54,7 +53,7 @@ export function AdminStories() {
     
     setSubmitting(true);
     try {
-      setUploadProgress('Uploading to Google Drive...');
+      setUploadProgress('Uploading to UploadThing...');
       let finalImageUrl = imageUrl;
       
       if (inputType === 'upload' && file) {
@@ -147,7 +146,7 @@ export function AdminStories() {
                   onChange={e => setFile(e.target.files?.[0] || null)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                 />
-                <p className="text-xs text-slate-500 mt-1">Image will be optimized and saved to database.</p>
+                <p className="text-xs text-slate-500 mt-1">Image will be uploaded to UploadThing and saved to database.</p>
               </div>
             ) : (
               <div>
