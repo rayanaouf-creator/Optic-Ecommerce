@@ -1,13 +1,14 @@
 import React from "react";
 import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Package, ShoppingCart, LayoutDashboard, Settings, LogOut, Camera, Lock } from 'lucide-react';
+import { Package, ShoppingCart, LayoutDashboard, Settings, LogOut, Camera, Lock, Menu, X } from 'lucide-react';
 
 export function AdminLayout() {
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +72,16 @@ export function AdminLayout() {
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col shrink-0">
+      {/* Mobile sidebar backdrop */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden" 
+          
+        />
+      )}
+      
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="h-16 flex items-center px-6 border-b border-slate-800">
           <span className="font-serif text-xl font-semibold tracking-tight text-white">Optica Admin</span>
         </div>
@@ -109,12 +119,18 @@ export function AdminLayout() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center px-8 shrink-0">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-8 shrink-0 gap-4">
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className="md:hidden p-2 text-slate-500 hover:text-slate-900"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
           <h1 className="text-xl font-semibold text-slate-900">
             {links.find(l => l.path === location.pathname)?.name || 'Admin'}
           </h1>
         </header>
-        <div className="flex-1 overflow-auto p-8">
+        <div className="flex-1 overflow-auto p-4 md:p-8">
           <div className="max-w-5xl mx-auto">
             <Outlet />
           </div>

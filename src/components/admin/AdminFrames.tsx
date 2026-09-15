@@ -204,6 +204,7 @@ export function AdminFrames() {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200 text-sm font-medium text-slate-500">
@@ -245,6 +246,7 @@ export function AdminFrames() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
