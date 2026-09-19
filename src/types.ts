@@ -26,6 +26,7 @@ export interface Brand {
 export interface Story {
   id: string;
   title: string;
+  brand?: string;
   image: string;
   oldPrice: number;
   newPrice: number;
@@ -70,6 +71,6 @@ export interface Order {
   leftEye?: string | null;
   rightEye?: string | null;
   totalAmount: number;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancelled';
   createdAt: any;
 }

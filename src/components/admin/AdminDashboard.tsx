@@ -1,8 +1,8 @@
-import { DollarSign, Package, ShoppingCart, Users } from 'lucide-react';
+import { Banknote, Package, ShoppingCart, Users } from 'lucide-react';
 
 export function AdminDashboard() {
   const stats = [
-    { name: 'Total Revenue', value: '$12,426.00', icon: DollarSign, trend: '+14%' },
+    { name: 'Total Revenue', value: '124 000 DA', icon: Banknote, trend: '+14%' },
     { name: 'Active Orders', value: '42', icon: ShoppingCart, trend: '+5%' },
     { name: 'Total Products', value: '124', icon: Package, trend: '0%' },
     { name: 'New Customers', value: '18', icon: Users, trend: '+22%' },
@@ -48,10 +48,10 @@ export function AdminDashboard() {
             </thead>
             <tbody className="text-sm">
               {[
-                { id: '#ORD-0921', name: 'Alex Johnson', date: 'Oct 24, 2026', amount: '$245.00', status: 'Processing' },
-                { id: '#ORD-0920', name: 'Maria Garcia', date: 'Oct 23, 2026', amount: '$125.00', status: 'Shipped' },
-                { id: '#ORD-0919', name: 'James Smith', date: 'Oct 23, 2026', amount: '$310.00', status: 'Delivered' },
-                { id: '#ORD-0918', name: 'Emma Davis', date: 'Oct 22, 2026', amount: '$145.00', status: 'Delivered' },
+                { id: '#ORD-0921', name: 'Alex Johnson', date: 'Oct 24, 2026', amount: '24 500 DA', status: 'Processing' },
+                { id: '#ORD-0920', name: 'Maria Garcia', date: 'Oct 23, 2026', amount: '12 500 DA', status: 'Shipped' },
+                { id: '#ORD-0919', name: 'James Smith', date: 'Oct 23, 2026', amount: '31 000 DA', status: 'Delivered' },
+                { id: '#ORD-0918', name: 'Emma Davis', date: 'Oct 22, 2026', amount: '14 500 DA', status: 'Delivered' },
               ].map((order) => (
                 <tr key={order.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
                   <td className="py-4 font-medium text-slate-900">{order.id}</td>

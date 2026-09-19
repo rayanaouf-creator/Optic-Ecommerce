@@ -73,7 +73,7 @@ export function ProductDetail() {
           <h1 className="font-serif text-4xl lg:text-5xl text-slate-900 mb-4">
             {frame.name}
           </h1>
-          <div className="text-2xl text-slate-900 mb-8">${frame.price}</div>
+          <div className="text-2xl text-slate-900 mb-8">{frame.price} DA</div>
 
           <div className="space-y-4 mb-10">
             <h3 className="text-sm font-medium text-slate-900">Available Colors</h3>

@@ -45,8 +45,8 @@ export function StoriesBar() {
                 </div>
                 <div className="flex flex-col items-center mt-1">
                   <div className="flex items-center gap-1.5 text-xs sm:text-sm">
-                    <span className="text-slate-400 line-through">${story.oldPrice}</span>
-                    <span className="text-red-600 font-bold">${story.newPrice}</span>
+                    <span className="text-slate-400 line-through">{story.oldPrice} DA</span>
+                    <span className="text-red-600 font-bold">{story.newPrice} DA</span>
                   </div>
                 </div>
               </button>

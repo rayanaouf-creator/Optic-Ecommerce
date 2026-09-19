@@ -120,7 +120,7 @@ export function ProductGrid() {
                     {frame.colors && frame.colors.length ? `${frame.colors.length} colors` : 'Standard edition'}
                   </p>
                 </div>
-                <span className="font-medium text-slate-900 text-lg">${frame.price}</span>
+                <span className="font-medium text-slate-900 text-lg">{frame.price} DA</span>
               </div>
             </Link>
           ))}

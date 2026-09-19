@@ -93,8 +93,8 @@ export function StoryViewer({ stories, initialIndex, onClose }: StoryViewerProps
         <div className="absolute bottom-12 bg-white/90 backdrop-blur-md px-6 py-3 rounded-2xl flex flex-col items-center">
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Available Again!</span>
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-slate-400 line-through font-medium">${currentStory.oldPrice}</span>
-            <span className="text-red-600 font-bold text-xl">${currentStory.newPrice}</span>
+            <span className="text-slate-400 line-through font-medium">{currentStory.oldPrice} DA</span>
+            <span className="text-red-600 font-bold text-xl">{currentStory.newPrice} DA</span>
           </div>
           <button 
             onClick={(e) => { e.stopPropagation(); setIsOrderModalOpen(true); }}

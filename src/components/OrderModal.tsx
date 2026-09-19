@@ -63,13 +63,13 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
     e.preventDefault();
     const finalCommune = isCustomCommune ? customCommuneName.trim() : selectedCommune.trim();
     if (!name.trim() || !phone.trim() || !selectedWilayaCode || !finalCommune) {
-      alert('Please fill in all required fields including your Province and Commune.');
+      alert('Veuillez renseigner tous les champs obligatoires (nom, téléphone, wilaya et commune).');
       return;
     }
     
     setSubmitting(true);
     try {
-      const wilayaFull = `${currentWilaya.code} - ${currentWilaya.name} (${currentWilaya.arabicName})`;
+      const wilayaFull = `${currentWilaya.code} - ${currentWilaya.name}`;
       await addDoc(collection(db, 'orders'), {
         frameId: product.id,
         frameName: product.name,
@@ -110,7 +110,7 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
       }, 2000);
     } catch (error) {
       console.error('Error placing order:', error);
-      alert('Failed to place order. Please try again.');
+      alert('Une erreur est survenue lors de la commande. Veuillez réessayer.');
     } finally {
       setSubmitting(false);
     }
@@ -142,20 +142,21 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-serif text-slate-900">Order Received!</h2>
-                <p className="text-slate-500">We'll contact you shortly to confirm your order details.</p>
+                <h2 className="text-2xl font-serif text-slate-900">Commande reçue !</h2>
+                <p className="text-slate-500">Nous vous contacterons rapidement pour confirmer votre commande.</p>
               </div>
             ) : (
               <>
                 <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 shrink-0 bg-white sticky top-0 z-10">
                   <div>
-                    <h2 className="text-lg font-serif text-slate-900">Direct Order / Commande</h2>
-                    <p className="text-xs text-slate-400">Algerian Express Optical Delivery</p>
+                    <h2 className="text-lg font-serif text-slate-900">Passer commande</h2>
+                    <p className="text-xs text-slate-400">Livraison express dans toute l'Algérie</p>
                   </div>
                   <button 
                     onClick={onClose}
                     className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-full transition-colors cursor-pointer"
                     disabled={submitting}
+                    aria-label="Fermer"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -167,7 +168,7 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                     <img src={product.image} alt={product.name} className="w-14 h-14 object-cover rounded-xl bg-white p-1 border border-slate-200/60" />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-slate-900 text-sm truncate">{product.name}</h3>
-                      <p className="text-xs font-semibold text-slate-700 mt-0.5">${product.price}</p>
+                      <p className="text-xs font-semibold text-slate-700 mt-0.5">{product.price} DA</p>
                     </div>
                   </div>
 
@@ -176,7 +177,7 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                          Full Name / Nom Complet <span className="text-red-500">*</span>
+                          Nom et prénom <span className="text-red-500">*</span>
                         </label>
                         <input 
                           type="text" 
@@ -184,12 +185,12 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                           value={name}
                           onChange={e => setName(e.target.value)}
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 transition-shadow"
-                          placeholder="e.g. Karim Benali"
+                          placeholder="ex. Karim Benali"
                         />
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                          Phone / Téléphone <span className="text-red-500">*</span>
+                          Numéro de téléphone <span className="text-red-500">*</span>
                         </label>
                         <input 
                           type="tel" 
@@ -197,7 +198,7 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                           value={phone}
                           onChange={e => setPhone(e.target.value)}
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 transition-shadow"
-                          placeholder="e.g. 0550 12 34 56"
+                          placeholder="ex. 0550 12 34 56"
                         />
                       </div>
                     </div>
@@ -206,14 +207,14 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                     <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 space-y-3.5">
                       <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 uppercase tracking-wider">
                         <MapPin className="w-4 h-4 text-slate-700" />
-                        <span>Delivery Location / عنوان التوصيل</span>
+                        <span>Lieu de livraison</span>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* Province / Wilaya */}
                         <div>
                           <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                            Province (Wilaya / ولاية) <span className="text-red-500">*</span>
+                            Wilaya <span className="text-red-500">*</span>
                           </label>
                           <select
                             value={selectedWilayaCode}
@@ -223,7 +224,7 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                           >
                             {ALGERIA_WILAYAS.map((w) => (
                               <option key={w.code} value={w.code}>
-                                {w.code} - {w.name} ({w.arabicName})
+                                {w.code} - {w.name}
                               </option>
                             ))}
                           </select>
@@ -232,7 +233,7 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                         {/* Commune */}
                         <div>
                           <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                            Commune (Baladiya / بلدية) <span className="text-red-500">*</span>
+                            Commune <span className="text-red-500">*</span>
                           </label>
                           {!isCustomCommune ? (
                             <select
@@ -246,7 +247,7 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                                   {communeName}
                                 </option>
                               ))}
-                              <option value="__custom__">+ Other / Autre (Saisie libre)...</option>
+                              <option value="__custom__">+ Autre commune (saisie libre)...</option>
                             </select>
                           ) : (
                             <div className="space-y-1.5">
@@ -255,7 +256,7 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                                 required
                                 value={customCommuneName}
                                 onChange={(e) => setCustomCommuneName(e.target.value)}
-                                placeholder="Type your commune..."
+                                placeholder="Indiquez votre commune..."
                                 className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                               />
                               <button
@@ -266,7 +267,7 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                                 }}
                                 className="text-[11px] text-slate-500 hover:text-slate-900 underline"
                               >
-                                ← Pick from {currentWilaya.name} list
+                                ← Choisir dans la liste de {currentWilaya.name}
                               </button>
                             </div>
                           )}
@@ -276,13 +277,13 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                       {/* Street Address / Delivery Notes */}
                       <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                          Street Address / Cité, Rue, Bâtiment
+                          Adresse exacte (Cité, rue, bâtiment, n°)
                         </label>
                         <input
                           type="text"
                           value={addressDetails}
                           onChange={(e) => setAddressDetails(e.target.value)}
-                          placeholder="e.g. Cité 500 Logts, Bâtiment 4, N° 12 (or Desk agency instructions)"
+                          placeholder="ex. Cité 500 Logements, Bâtiment 4, N° 12..."
                           className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 transition-shadow"
                         />
                       </div>
@@ -291,7 +292,7 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                     {/* Delivery Method */}
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-2">
-                        Delivery Method / طريقة التوصيل
+                        Mode de livraison
                       </label>
                       <div className="grid grid-cols-2 gap-3">
                         <button
@@ -303,8 +304,8 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                               : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
                           }`}
                         >
-                          <div className="font-semibold">To Home</div>
-                          <div className="text-[11px] opacity-80 mt-0.5">À Domicile</div>
+                          <div className="font-semibold">À domicile</div>
+                          <div className="text-[11px] opacity-80 mt-0.5">Livraison à votre porte</div>
                         </button>
                         <button
                           type="button"
@@ -315,8 +316,8 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                               : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
                           }`}
                         >
-                          <div className="font-semibold">To Desk (Pickup)</div>
-                          <div className="text-[11px] opacity-80 mt-0.5">Au Bureau / Stop Desk</div>
+                          <div className="font-semibold">Point relais</div>
+                          <div className="text-[11px] opacity-80 mt-0.5">Bureau Stop Desk</div>
                         </button>
                       </div>
                     </div>
@@ -336,13 +337,13 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        <span className="text-xs sm:text-sm font-medium text-slate-700">I need correcting lenses (Mesures optiques)</span>
+                        <span className="text-xs sm:text-sm font-medium text-slate-700">J'ai besoin de verres correcteurs</span>
                       </label>
                       
                       {needsLenses && (
                         <div className="space-y-3.5 animate-in fade-in slide-in-from-top-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
                           <div>
-                            <span className="block text-xs font-semibold text-slate-900 mb-1.5">Left Eye (OS) / العين اليسرى</span>
+                            <span className="block text-xs font-semibold text-slate-900 mb-1.5">Œil gauche (OG)</span>
                             <div className="grid grid-cols-2 gap-2.5">
                               <div>
                                 <label className="block text-[10px] uppercase tracking-wider text-slate-500 mb-1">SPH</label>
@@ -367,7 +368,7 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                             </div>
                           </div>
                           <div className="border-t border-slate-200 pt-3">
-                            <span className="block text-xs font-semibold text-slate-900 mb-1.5">Right Eye (OD) / العين اليمنى</span>
+                            <span className="block text-xs font-semibold text-slate-900 mb-1.5">Œil droit (OD)</span>
                             <div className="grid grid-cols-2 gap-2.5">
                               <div>
                                 <label className="block text-[10px] uppercase tracking-wider text-slate-500 mb-1">SPH</label>
@@ -402,7 +403,7 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
                       disabled={submitting}
                       className="w-full bg-slate-900 text-white py-3.5 rounded-xl font-medium hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md cursor-pointer"
                     >
-                      {submitting ? 'Placing Order...' : 'Confirm Order / Valider la commande'}
+                      {submitting ? 'Envoi de la commande...' : 'Confirmer la commande'}
                     </button>
                   </div>
                 </form>
