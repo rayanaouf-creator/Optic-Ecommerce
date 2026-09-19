@@ -55,19 +55,32 @@
     },
     {
       "name": "orders",
-      "description": "Store customer orders",
+      "description": "Store customer orders with Algerian province and commune delivery details",
       "fields": [
+        { "name": "frameId", "type": "string" },
+        { "name": "frameName", "type": "string" },
         { "name": "customerName", "type": "string" },
+        { "name": "customerPhone", "type": "string" },
+        { "name": "wilaya", "type": "string" },
+        { "name": "wilayaCode", "type": "string" },
+        { "name": "wilayaName", "type": "string" },
+        { "name": "commune", "type": "string" },
+        { "name": "addressDetails", "type": "string" },
+        { "name": "deliveryMethod", "type": "string" },
+        { "name": "needsCorrectingLenses", "type": "boolean" },
+        { "name": "leftSph", "type": "string" },
+        { "name": "leftCyl", "type": "string" },
+        { "name": "rightSph", "type": "string" },
+        { "name": "rightCyl", "type": "string" },
         { "name": "status", "type": "string" },
         { "name": "totalAmount", "type": "number" },
-        { "name": "createdAt", "type": "timestamp" },
-        { "name": "items", "type": "array" }
+        { "name": "createdAt", "type": "timestamp" }
       ],
       "rules": {
         "read": "true",
         "create": "true",
-        "update": "false",
-        "delete": "false"
+        "update": "true",
+        "delete": "true"
       }
     }
   ]

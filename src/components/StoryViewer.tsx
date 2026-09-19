@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Story } from '../types';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { OrderModal } from './OrderModal';
 
 interface StoryViewerProps {
   stories: Story[];
@@ -11,8 +12,10 @@ interface StoryViewerProps {
 export function StoryViewer({ stories, initialIndex, onClose }: StoryViewerProps) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [progress, setProgress] = useState(0);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
   useEffect(() => {
+    if (isOrderModalOpen) return;
     setProgress(0);
     const interval = setInterval(() => {
       setProgress(p => {
@@ -25,7 +28,7 @@ export function StoryViewer({ stories, initialIndex, onClose }: StoryViewerProps
       });
     }, 100);
     return () => clearInterval(interval);
-  }, [activeIndex]);
+  }, [activeIndex, isOrderModalOpen]);
 
   const handleNext = () => {
     if (activeIndex < stories.length - 1) {
@@ -88,13 +91,31 @@ export function StoryViewer({ stories, initialIndex, onClose }: StoryViewerProps
         
         {/* Price Tag Overlay */}
         <div className="absolute bottom-12 bg-white/90 backdrop-blur-md px-6 py-3 rounded-2xl flex flex-col items-center">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Sold Out</span>
-          <div className="flex items-center gap-3">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Available Again!</span>
+          <div className="flex items-center gap-3 mb-3">
             <span className="text-slate-400 line-through font-medium">${currentStory.oldPrice}</span>
             <span className="text-red-600 font-bold text-xl">${currentStory.newPrice}</span>
           </div>
+          <button 
+            onClick={(e) => { e.stopPropagation(); setIsOrderModalOpen(true); }}
+            className="bg-slate-900 text-white px-6 py-2.5 rounded-xl font-medium text-sm hover:bg-slate-800 transition-colors w-full"
+          >
+            Order Now
+          </button>
         </div>
       </div>
+      {currentStory && (
+        <OrderModal 
+          isOpen={isOrderModalOpen} 
+          onClose={() => setIsOrderModalOpen(false)} 
+          product={{
+            id: currentStory.id,
+            name: currentStory.title,
+            price: currentStory.newPrice,
+            image: currentStory.image
+          }} 
+        />
+      )}
     </div>
   );
 }

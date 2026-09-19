@@ -51,3 +51,25 @@ export interface CartItem {
   treatments: LensTreatment[];
   totalPrice: number;
 }
+
+export interface Order {
+  id: string;
+  frameId: string;
+  frameName: string;
+  customerName: string;
+  customerPhone: string;
+  wilaya: string;
+  commune: string;
+  addressDetails?: string;
+  deliveryMethod: 'home' | 'desk';
+  needsCorrectingLenses: boolean;
+  leftSph?: string | null;
+  leftCyl?: string | null;
+  rightSph?: string | null;
+  rightCyl?: string | null;
+  leftEye?: string | null;
+  rightEye?: string | null;
+  totalAmount: number;
+  status: 'pending' | 'completed' | 'cancelled';
+  createdAt: any;
+}

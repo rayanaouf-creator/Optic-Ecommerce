@@ -1,5 +1,5 @@
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { OrderModal } from './OrderModal';
 import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
@@ -62,9 +62,14 @@ export function ProductDetail() {
 
         {/* Right: Details & Actions */}
         <div className="flex flex-col justify-center">
-          <div className="mb-2 text-sm font-medium text-slate-500 tracking-wider uppercase">
-            {frame.brand}
-          </div>
+          <Link 
+            to={`/?brand=${encodeURIComponent(frame.brand)}`}
+            className="mb-2 text-xs font-semibold text-slate-500 hover:text-slate-900 tracking-widest uppercase inline-flex items-center gap-1.5 transition-colors group"
+            title={`View all ${frame.brand} eyewear`}
+          >
+            <span>{frame.brand}</span>
+            <span className="text-[10px] text-slate-400 group-hover:text-slate-700 transition-colors">→ View all</span>
+          </Link>
           <h1 className="font-serif text-4xl lg:text-5xl text-slate-900 mb-4">
             {frame.name}
           </h1>
@@ -108,7 +113,7 @@ export function ProductDetail() {
         <OrderModal 
           isOpen={isOrderModalOpen} 
           onClose={() => setIsOrderModalOpen(false)} 
-          frame={frame} 
+          product={frame} 
         />
       )}
     </div>
