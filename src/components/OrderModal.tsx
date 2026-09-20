@@ -5,6 +5,7 @@ import { db } from '../lib/firebase';
 import { X, MapPin } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ALGERIA_WILAYAS } from '../data/algeriaLocations';
+import { trackPurchase } from '../lib/metaPixel';
 
 interface OrderModalProps {
   isOpen: boolean;
@@ -70,7 +71,7 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
     setSubmitting(true);
     try {
       const wilayaFull = `${currentWilaya.code} - ${currentWilaya.name}`;
-      await addDoc(collection(db, 'orders'), {
+      const docRef = await addDoc(collection(db, 'orders'), {
         frameId: product.id,
         frameName: product.name,
         customerName: name.trim(),
@@ -90,6 +91,15 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
         status: 'pending',
         createdAt: serverTimestamp()
       });
+
+      // Meta Pixel: Track Purchase event for Meta ads conversion reporting
+      trackPurchase({
+        id: docRef.id,
+        frameName: product.name,
+        frameId: product.id,
+        totalAmount: product.price
+      });
+
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);

@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Package, ShoppingCart, LayoutDashboard, Settings, LogOut, Camera, Lock, Menu, X } from 'lucide-react';
 
@@ -9,6 +9,11 @@ export function AdminLayout() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Automatically close sidebar when navigation/route changes
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,15 +80,22 @@ export function AdminLayout() {
       {/* Mobile sidebar backdrop */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden" 
-          
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 md:hidden" 
+          onClick={() => setIsSidebarOpen(false)}
         />
       )}
       
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="h-16 flex items-center px-6 border-b border-slate-800">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800">
           <span className="font-serif text-xl font-semibold tracking-tight text-white">Optica Admin</span>
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            className="md:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            title="Fermer le menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
         
         <nav className="flex-1 py-6 px-4 space-y-2">
@@ -95,6 +107,7 @@ export function AdminLayout() {
               <Link 
                 key={link.name}
                 to={link.path} 
+                onClick={() => setIsSidebarOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
                 }`}
@@ -109,6 +122,7 @@ export function AdminLayout() {
         <div className="p-4 border-t border-slate-800">
           <Link 
             to="/" 
+            onClick={() => setIsSidebarOpen(false)}
             className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors"
           >
             <LogOut className="w-5 h-5" />

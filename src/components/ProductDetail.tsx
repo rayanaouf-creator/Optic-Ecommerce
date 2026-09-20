@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Frame } from '../types';
+import { trackViewContent, trackInitiateCheckout } from '../lib/metaPixel';
 
 export function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -21,7 +22,15 @@ export function ProductDetail() {
         const docRef = doc(db, 'frames', id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setFrame({ id: docSnap.id, ...docSnap.data() } as Frame);
+          const frameData = { id: docSnap.id, ...docSnap.data() } as Frame;
+          setFrame(frameData);
+          // Meta Pixel: Track ViewContent when visitor lands on product page
+          trackViewContent({
+            id: frameData.id,
+            name: frameData.name,
+            price: frameData.price,
+            brand: frameData.brand
+          });
         }
       } catch (error) {
         console.error('Error fetching frame:', error);
@@ -91,7 +100,16 @@ export function ProductDetail() {
 
           <div className="flex flex-col gap-4">
             <button 
-              onClick={() => setIsOrderModalOpen(true)}
+              onClick={() => {
+                if (frame) {
+                  trackInitiateCheckout({
+                    id: frame.id,
+                    name: frame.name,
+                    price: frame.price
+                  });
+                }
+                setIsOrderModalOpen(true);
+              }}
               className="w-full bg-slate-900 text-white py-4 rounded-xl font-medium hover:bg-slate-800 transition-colors text-center"
             >
               Order Now

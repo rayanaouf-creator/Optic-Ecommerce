@@ -10,6 +10,7 @@ import { AdminStories } from './components/admin/AdminStories';
 import { AdminBrands } from './components/admin/AdminBrands';
 import { AdminFrames } from './components/admin/AdminFrames';
 import { AdminOrders } from './components/admin/AdminOrders';
+import { AdminSettings } from './components/admin/AdminSettings';
 
 function StoreLayout() {
 
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="products" element={<AdminFrames />} />
             <Route path="stories" element={<AdminStories />} />
             <Route path="brands" element={<AdminBrands />} />
+            <Route path="settings" element={<AdminSettings />} />
             <Route path="*" element={<div className="p-8 text-slate-500">Coming soon</div>} />
           </Route>
         </Routes>
