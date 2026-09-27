@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { Header } from './components/Header';
 import { ProductGrid } from './components/ProductGrid';
@@ -11,8 +12,17 @@ import { AdminBrands } from './components/admin/AdminBrands';
 import { AdminFrames } from './components/admin/AdminFrames';
 import { AdminOrders } from './components/admin/AdminOrders';
 import { AdminSettings } from './components/admin/AdminSettings';
+import { subscribeToStoreSettings } from './lib/storeSettings';
 
 function StoreLayout() {
+  const [storeName, setStoreName] = useState('VISIOTTICA');
+
+  useEffect(() => {
+    const unsub = subscribeToStoreSettings((s) => {
+      if (s.storeName) setStoreName(s.storeName);
+    });
+    return () => unsub();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -24,11 +34,9 @@ function StoreLayout() {
 
       <footer className="bg-white border-t border-slate-200 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-slate-500">
-          © {new Date().getFullYear()} Optica Signature Eyewear. All rights reserved.
+          © {new Date().getFullYear()} {storeName} Eyewear. All rights reserved.
         </div>
       </footer>
-
-
     </div>
   );
 }

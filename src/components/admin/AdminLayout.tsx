@@ -2,6 +2,8 @@ import React from "react";
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Package, ShoppingCart, LayoutDashboard, Settings, LogOut, Camera, Lock, Menu, X } from 'lucide-react';
+import logoImg from '../../assets/logo.jpg';
+import { subscribeToStoreSettings, StoreSettings } from '../../lib/storeSettings';
 
 export function AdminLayout() {
   const location = useLocation();
@@ -9,6 +11,15 @@ export function AdminLayout() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [settings, setSettings] = useState<StoreSettings>({
+    logoUrl: '',
+    storeName: 'Optica Admin',
+  });
+
+  useEffect(() => {
+    const unsub = subscribeToStoreSettings((s) => setSettings(s));
+    return () => unsub();
+  }, []);
 
   // Automatically close sidebar when navigation/route changes
   useEffect(() => {
@@ -88,7 +99,19 @@ export function AdminLayout() {
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800">
-          <span className="font-serif text-xl font-semibold tracking-tight text-white">Optica Admin</span>
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <img 
+              src={settings.logoUrl || logoImg} 
+              alt="Logo" 
+              className="w-8 h-8 rounded object-contain bg-white/10 shrink-0"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = logoImg;
+              }}
+            />
+            <span className="font-serif text-lg font-semibold tracking-tight text-white truncate">
+              {settings.storeName ? `${settings.storeName} Admin` : 'Optica Admin'}
+            </span>
+          </div>
           <button 
             onClick={() => setIsSidebarOpen(false)}
             className="md:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"

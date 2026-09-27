@@ -82,6 +82,23 @@
         "update": "true",
         "delete": "true"
       }
+    },
+    {
+      "name": "settings",
+      "description": "Store branding logo, store name, subtitle, and integration tokens",
+      "fields": [
+        { "name": "logoUrl", "type": "string" },
+        { "name": "storeName", "type": "string" },
+        { "name": "storeSubtitle", "type": "string" },
+        { "name": "uploadthingToken", "type": "string" },
+        { "name": "updatedAt", "type": "string" }
+      ],
+      "rules": {
+        "read": "true",
+        "create": "true",
+        "update": "true",
+        "delete": "true"
+      }
     }
   ]
 }
