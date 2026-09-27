@@ -31,6 +31,27 @@ function parseBool(val: string | null, defaultValue: boolean): boolean {
 }
 
 /**
+ * Get cached settings from localStorage if available (fast first render)
+ */
+export function getLocalCachedSettings(): StoreSettings | null {
+  const cachedLogo = localStorage.getItem(LOCAL_LOGO_KEY);
+  const cachedStoreName = localStorage.getItem(LOCAL_STORE_NAME_KEY);
+  // Only return cache if user has previously customized or saved settings
+  if (cachedLogo !== null || cachedStoreName !== null) {
+    return {
+      logoUrl: cachedLogo || '',
+      logoShape: (localStorage.getItem(LOCAL_LOGO_SHAPE_KEY) as LogoShape) || 'rectangle',
+      showStoreName: parseBool(localStorage.getItem(LOCAL_SHOW_NAME_KEY), true),
+      showStoreSubtitle: parseBool(localStorage.getItem(LOCAL_SHOW_SUBTITLE_KEY), true),
+      storeName: cachedStoreName || '',
+      storeSubtitle: localStorage.getItem(LOCAL_STORE_SUBTITLE_KEY) || '',
+      uploadthingToken: localStorage.getItem(LOCAL_UPLOADTHING_TOKEN_KEY) || ''
+    };
+  }
+  return null;
+}
+
+/**
  * Fetch settings from Firestore with graceful fallback to localStorage and defaults
  */
 export async function getStoreSettings(): Promise<StoreSettings> {
@@ -40,18 +61,21 @@ export async function getStoreSettings(): Promise<StoreSettings> {
     if (snap.exists()) {
       const data = snap.data() as StoreSettings;
       // sync to local storage cache
-      if (data.logoUrl) localStorage.setItem(LOCAL_LOGO_KEY, data.logoUrl);
+      if (data.logoUrl !== undefined) localStorage.setItem(LOCAL_LOGO_KEY, data.logoUrl);
       if (data.logoShape) localStorage.setItem(LOCAL_LOGO_SHAPE_KEY, data.logoShape);
       if (data.showStoreName !== undefined) localStorage.setItem(LOCAL_SHOW_NAME_KEY, String(data.showStoreName));
       if (data.showStoreSubtitle !== undefined) localStorage.setItem(LOCAL_SHOW_SUBTITLE_KEY, String(data.showStoreSubtitle));
-      if (data.storeName) localStorage.setItem(LOCAL_STORE_NAME_KEY, data.storeName);
-      if (data.storeSubtitle) localStorage.setItem(LOCAL_STORE_SUBTITLE_KEY, data.storeSubtitle);
-      if (data.uploadthingToken) localStorage.setItem(LOCAL_UPLOADTHING_TOKEN_KEY, data.uploadthingToken);
+      if (data.storeName !== undefined) localStorage.setItem(LOCAL_STORE_NAME_KEY, data.storeName);
+      if (data.storeSubtitle !== undefined) localStorage.setItem(LOCAL_STORE_SUBTITLE_KEY, data.storeSubtitle);
+      if (data.uploadthingToken !== undefined) localStorage.setItem(LOCAL_UPLOADTHING_TOKEN_KEY, data.uploadthingToken);
       
       return {
+        logoUrl: data.logoUrl || '',
         logoShape: data.logoShape || 'rectangle',
         showStoreName: data.showStoreName !== undefined ? data.showStoreName : true,
         showStoreSubtitle: data.showStoreSubtitle !== undefined ? data.showStoreSubtitle : true,
+        storeName: data.storeName || '',
+        storeSubtitle: data.storeSubtitle || '',
         ...data
       };
     }
@@ -59,14 +83,14 @@ export async function getStoreSettings(): Promise<StoreSettings> {
     console.warn('Could not read store settings from Firestore, checking localStorage cache:', err);
   }
 
-  // Fallback to local storage
+  // Fallback to local storage or empty
   return {
     logoUrl: localStorage.getItem(LOCAL_LOGO_KEY) || '',
     logoShape: (localStorage.getItem(LOCAL_LOGO_SHAPE_KEY) as LogoShape) || 'rectangle',
     showStoreName: parseBool(localStorage.getItem(LOCAL_SHOW_NAME_KEY), true),
     showStoreSubtitle: parseBool(localStorage.getItem(LOCAL_SHOW_SUBTITLE_KEY), true),
-    storeName: localStorage.getItem(LOCAL_STORE_NAME_KEY) || 'VISIOTTICA',
-    storeSubtitle: localStorage.getItem(LOCAL_STORE_SUBTITLE_KEY) || 'EYEWEAR',
+    storeName: localStorage.getItem(LOCAL_STORE_NAME_KEY) || '',
+    storeSubtitle: localStorage.getItem(LOCAL_STORE_SUBTITLE_KEY) || '',
     uploadthingToken: localStorage.getItem(LOCAL_UPLOADTHING_TOKEN_KEY) || ''
   };
 }
@@ -77,8 +101,7 @@ export async function getStoreSettings(): Promise<StoreSettings> {
 export async function saveStoreSettings(settings: Partial<StoreSettings>): Promise<void> {
   // Update local storage immediate cache
   if (settings.logoUrl !== undefined) {
-    if (settings.logoUrl) localStorage.setItem(LOCAL_LOGO_KEY, settings.logoUrl);
-    else localStorage.removeItem(LOCAL_LOGO_KEY);
+    localStorage.setItem(LOCAL_LOGO_KEY, settings.logoUrl);
   }
   if (settings.logoShape !== undefined) {
     localStorage.setItem(LOCAL_LOGO_SHAPE_KEY, settings.logoShape);
@@ -90,10 +113,10 @@ export async function saveStoreSettings(settings: Partial<StoreSettings>): Promi
     localStorage.setItem(LOCAL_SHOW_SUBTITLE_KEY, String(settings.showStoreSubtitle));
   }
   if (settings.storeName !== undefined) {
-    localStorage.setItem(LOCAL_STORE_NAME_KEY, settings.storeName || 'VISIOTTICA');
+    localStorage.setItem(LOCAL_STORE_NAME_KEY, settings.storeName);
   }
   if (settings.storeSubtitle !== undefined) {
-    localStorage.setItem(LOCAL_STORE_SUBTITLE_KEY, settings.storeSubtitle || 'EYEWEAR');
+    localStorage.setItem(LOCAL_STORE_SUBTITLE_KEY, settings.storeSubtitle);
   }
   if (settings.uploadthingToken !== undefined) {
     if (settings.uploadthingToken) localStorage.setItem(LOCAL_UPLOADTHING_TOKEN_KEY, settings.uploadthingToken);
@@ -117,13 +140,13 @@ export async function saveStoreSettings(settings: Partial<StoreSettings>): Promi
  * Subscribe to real-time changes of store settings
  */
 export function subscribeToStoreSettings(callback: (settings: StoreSettings) => void) {
-  const getDefaultFallback = (): StoreSettings => ({
+  const getFallback = (): StoreSettings => ({
     logoUrl: localStorage.getItem(LOCAL_LOGO_KEY) || '',
     logoShape: (localStorage.getItem(LOCAL_LOGO_SHAPE_KEY) as LogoShape) || 'rectangle',
     showStoreName: parseBool(localStorage.getItem(LOCAL_SHOW_NAME_KEY), true),
     showStoreSubtitle: parseBool(localStorage.getItem(LOCAL_SHOW_SUBTITLE_KEY), true),
-    storeName: localStorage.getItem(LOCAL_STORE_NAME_KEY) || 'VISIOTTICA',
-    storeSubtitle: localStorage.getItem(LOCAL_STORE_SUBTITLE_KEY) || 'EYEWEAR',
+    storeName: localStorage.getItem(LOCAL_STORE_NAME_KEY) || '',
+    storeSubtitle: localStorage.getItem(LOCAL_STORE_SUBTITLE_KEY) || '',
     uploadthingToken: localStorage.getItem(LOCAL_UPLOADTHING_TOKEN_KEY) || ''
   });
 
@@ -132,30 +155,33 @@ export function subscribeToStoreSettings(callback: (settings: StoreSettings) => 
     return onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as StoreSettings;
-        if (data.logoUrl) localStorage.setItem(LOCAL_LOGO_KEY, data.logoUrl);
+        if (data.logoUrl !== undefined) localStorage.setItem(LOCAL_LOGO_KEY, data.logoUrl);
         if (data.logoShape) localStorage.setItem(LOCAL_LOGO_SHAPE_KEY, data.logoShape);
         if (data.showStoreName !== undefined) localStorage.setItem(LOCAL_SHOW_NAME_KEY, String(data.showStoreName));
         if (data.showStoreSubtitle !== undefined) localStorage.setItem(LOCAL_SHOW_SUBTITLE_KEY, String(data.showStoreSubtitle));
-        if (data.storeName) localStorage.setItem(LOCAL_STORE_NAME_KEY, data.storeName);
-        if (data.storeSubtitle) localStorage.setItem(LOCAL_STORE_SUBTITLE_KEY, data.storeSubtitle);
-        if (data.uploadthingToken) localStorage.setItem(LOCAL_UPLOADTHING_TOKEN_KEY, data.uploadthingToken);
+        if (data.storeName !== undefined) localStorage.setItem(LOCAL_STORE_NAME_KEY, data.storeName);
+        if (data.storeSubtitle !== undefined) localStorage.setItem(LOCAL_STORE_SUBTITLE_KEY, data.storeSubtitle);
+        if (data.uploadthingToken !== undefined) localStorage.setItem(LOCAL_UPLOADTHING_TOKEN_KEY, data.uploadthingToken);
         
         callback({
+          logoUrl: data.logoUrl || '',
           logoShape: data.logoShape || 'rectangle',
           showStoreName: data.showStoreName !== undefined ? data.showStoreName : true,
           showStoreSubtitle: data.showStoreSubtitle !== undefined ? data.showStoreSubtitle : true,
+          storeName: data.storeName || '',
+          storeSubtitle: data.storeSubtitle || '',
           ...data
         });
       } else {
-        callback(getDefaultFallback());
+        callback(getFallback());
       }
     }, (error) => {
       console.warn('Real-time store settings subscription error:', error);
-      callback(getDefaultFallback());
+      callback(getFallback());
     });
   } catch (e) {
     console.warn('Error subscribing to store settings:', e);
-    callback(getDefaultFallback());
+    callback(getFallback());
     return () => {};
   }
 }

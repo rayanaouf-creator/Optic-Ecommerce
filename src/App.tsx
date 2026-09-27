@@ -15,11 +15,13 @@ import { AdminSettings } from './components/admin/AdminSettings';
 import { subscribeToStoreSettings } from './lib/storeSettings';
 
 function StoreLayout() {
-  const [storeName, setStoreName] = useState('VISIOTTICA');
+  const [storeName, setStoreName] = useState(() => {
+    return localStorage.getItem('optica_store_name') || '';
+  });
 
   useEffect(() => {
     const unsub = subscribeToStoreSettings((s) => {
-      if (s.storeName) setStoreName(s.storeName);
+      if (s.storeName !== undefined) setStoreName(s.storeName);
     });
     return () => unsub();
   }, []);
@@ -33,8 +35,8 @@ function StoreLayout() {
       </main>
 
       <footer className="bg-white border-t border-slate-200 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-slate-500">
-          © {new Date().getFullYear()} {storeName} Eyewear. All rights reserved.
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-slate-500 min-h-[36px]">
+          © {new Date().getFullYear()} {storeName ? `${storeName} Eyewear. All rights reserved.` : 'All rights reserved.'}
         </div>
       </footer>
     </div>
@@ -64,6 +66,7 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="products" element={<AdminFrames />} />
+            <Route path="frames" element={<AdminFrames />} />
             <Route path="stories" element={<AdminStories />} />
             <Route path="brands" element={<AdminBrands />} />
             <Route path="settings" element={<AdminSettings />} />

@@ -557,7 +557,7 @@ export function AdminOrders() {
                 </td>
                 <td className="px-6 py-4">
                   <span className="font-medium text-slate-800 text-xs block">
-                    {order.frameName || 'Monture'}
+                    {order.frameName || 'Produit'}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-slate-500 text-xs">

@@ -1,12 +1,21 @@
+export type Gender = 'Men' | 'Women' | 'Unisex';
+export type AgeGroup = 'Adult' | 'Kid'; // Tranche d'âge: Adulte ou Enfant
+
 export interface Frame {
   id: string;
   name: string;
   brand: string;
   price: number;
   image: string;
-  category: 'Men' | 'Women' | 'Unisex';
+  gender: Gender;                 // Sexe: Homme (Men), Femme (Women), Unisexe (Unisex)
+  ageGroup: AgeGroup;             // Tranche d'âge: Adulte (Adult) ou Enfant (Kid)
+  category?: 'Men' | 'Women' | 'Unisex' | string; // Backward compatibility
   shape: 'Round' | 'Square' | 'Aviator' | 'Cat Eye';
   colors: string[];
+  stockQuantity?: number;         // Available inventory quantity (e.g. 10, 5, 0)
+  inStock?: boolean;              // Whether the item is available for order
+  sku?: string;                   // Optional SKU/Reference code
+  lowStockThreshold?: number;     // Alert threshold (default: 3)
 }
 
 export interface Prescription {

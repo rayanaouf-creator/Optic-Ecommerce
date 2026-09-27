@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from 'react';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { X, MapPin } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
@@ -91,6 +91,23 @@ export function OrderModal({ isOpen, onClose, product }: OrderModalProps) {
         status: 'pending',
         createdAt: serverTimestamp()
       });
+
+      // Stock Tracking: Decrement item available quantity
+      try {
+        const frameDocRef = doc(db, 'frames', product.id);
+        const frameSnap = await getDoc(frameDocRef);
+        if (frameSnap.exists()) {
+          const currentData = frameSnap.data();
+          const currentQty = currentData.stockQuantity !== undefined ? Number(currentData.stockQuantity) : 10;
+          const updatedQty = Math.max(0, currentQty - 1);
+          await updateDoc(frameDocRef, {
+            stockQuantity: updatedQty,
+            inStock: updatedQty > 0
+          });
+        }
+      } catch (stockErr) {
+        console.warn('Could not auto-decrement stock:', stockErr);
+      }
 
       // Meta Pixel: Track Purchase event for Meta ads conversion reporting
       trackPurchase({
