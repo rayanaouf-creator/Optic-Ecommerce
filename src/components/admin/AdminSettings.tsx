@@ -1,18 +1,22 @@
 import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { getMetaPixelId, saveMetaPixelId, trackPixelEvent } from '../../lib/metaPixel';
-import { getStoreSettings, saveStoreSettings, StoreSettings } from '../../lib/storeSettings';
+import { getStoreSettings, saveStoreSettings, StoreSettings, LogoShape } from '../../lib/storeSettings';
 import { compressImage } from '../../lib/imageUtils';
 import logoDefault from '../../assets/logo.jpg';
 import { 
   Target, Check, AlertCircle, ExternalLink, Activity, Info, 
-  Upload, Image as ImageIcon, Key, Trash2, RefreshCw, Sparkles, Building2
+  Upload, Image as ImageIcon, Key, Trash2, RefreshCw, Sparkles, Building2,
+  Square, RectangleHorizontal, Eye, EyeOff
 } from 'lucide-react';
 
 export function AdminSettings() {
-  // Store Settings (Logo, Store Name, UploadThing Token)
+  // Store Settings (Logo, Store Name, UploadThing Token, Shape, Text Visibilities)
   const [settings, setSettings] = useState<StoreSettings>({
     logoUrl: '',
+    logoShape: 'rectangle',
+    showStoreName: true,
+    showStoreSubtitle: true,
     storeName: 'VISIOTTICA',
     storeSubtitle: 'EYEWEAR',
     uploadthingToken: ''
@@ -91,6 +95,9 @@ export function AdminSettings() {
     try {
       const updated: Partial<StoreSettings> = {
         logoUrl: logoPreview.trim(),
+        logoShape: settings.logoShape || 'rectangle',
+        showStoreName: settings.showStoreName !== false,
+        showStoreSubtitle: settings.showStoreSubtitle !== false,
         storeName: (settings.storeName || 'VISIOTTICA').trim(),
         storeSubtitle: (settings.storeSubtitle || 'EYEWEAR').trim(),
         uploadthingToken: (settings.uploadthingToken || '').trim()
@@ -133,11 +140,15 @@ export function AdminSettings() {
     setTimeout(() => setTestSuccess(false), 3000);
   };
 
+  const isSquare = settings.logoShape === 'square';
+  const showName = settings.showStoreName !== false;
+  const showSubtitle = settings.showStoreSubtitle !== false;
+
   return (
     <div className="space-y-8 max-w-4xl">
       <div>
         <h2 className="text-xl font-bold text-slate-900">Paramètres de la Boutique (Store Settings)</h2>
-        <p className="text-sm text-slate-500">Personnalisez votre logo, l'identité de marque, les identifiants UploadThing et vos outils marketing.</p>
+        <p className="text-sm text-slate-500">Personnalisez votre logo, son format (carré ou rectangle), l'affichage du nom/sous-titre et les identifiants.</p>
       </div>
 
       {/* 1. BRANDING & LOGO SECTION */}
@@ -149,7 +160,7 @@ export function AdminSettings() {
             </div>
             <div>
               <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                Logo & Identité de Marque
+                Logo & Identité Visuelle
                 {logoPreview ? (
                   <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">
                     Logo personnalisé
@@ -161,7 +172,7 @@ export function AdminSettings() {
                 )}
               </h3>
               <p className="text-xs text-slate-500">
-                Changez le logo affiché dans la barre de navigation du site client et le panneau d'administration.
+                Gérez l'aspect du logo dans la barre de navigation du site client et le panneau d'administration.
               </p>
             </div>
           </div>
@@ -170,41 +181,119 @@ export function AdminSettings() {
         <form onSubmit={handleSaveStoreSettings} className="space-y-6">
           {/* Logo Live Preview */}
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-6">
-            <div className="w-40 h-24 bg-white rounded-xl border border-slate-200 flex items-center justify-center p-3 shadow-xs overflow-hidden shrink-0">
+            <div className={`bg-white rounded-xl border border-slate-200 flex items-center justify-center p-2 shadow-xs overflow-hidden shrink-0 transition-all ${
+              isSquare ? 'w-24 h-24 sm:w-28 sm:h-28' : 'w-44 h-20 sm:w-48 sm:h-24'
+            }`}>
               <img 
                 src={logoPreview || logoDefault} 
                 alt="Logo Preview" 
-                className="max-h-full max-w-full object-contain"
+                className={`max-h-full max-w-full object-contain ${isSquare ? 'w-full h-full rounded-lg' : ''}`}
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = logoDefault;
                 }}
               />
             </div>
             <div className="flex-1 space-y-2 text-center sm:text-left">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Aperçu en direct dans le Header</div>
-              <div className="flex items-center gap-3 justify-center sm:justify-start">
-                <span className="font-serif text-lg font-bold text-slate-900 leading-none">
-                  {settings.storeName || 'VISIOTTICA'}
-                </span>
-                {settings.storeSubtitle && (
-                  <span className="text-[10px] font-medium tracking-[0.25em] text-slate-500 uppercase">
-                    {settings.storeSubtitle}
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Aperçu dans le Header (Barre de navigation)
+              </div>
+              
+              <div className="inline-flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 shadow-xs max-w-full">
+                <div className={`overflow-hidden flex items-center justify-center ${
+                  isSquare ? 'w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 p-0.5' : 'h-10 w-24'
+                }`}>
+                  <img 
+                    src={logoPreview || logoDefault} 
+                    alt="Logo Header" 
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
+                {(showName || (showSubtitle && settings.storeSubtitle)) ? (
+                  <div className="flex flex-col text-left">
+                    {showName && (
+                      <span className="font-serif text-base font-bold text-slate-900 leading-none">
+                        {settings.storeName || 'VISIOTTICA'}
+                      </span>
+                    )}
+                    {showSubtitle && settings.storeSubtitle && (
+                      <span className="text-[9px] font-semibold tracking-[0.2em] text-slate-500 mt-1 uppercase">
+                        {settings.storeSubtitle}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-xs italic text-slate-400">
+                    (Seul le logo est visible - texte masqué)
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500">
-                Format conseillé : PNG ou JPG transparent ou sur fond blanc (ex: 400x120px).
-              </p>
-              {logoPreview && (
-                <button
-                  type="button"
-                  onClick={handleResetToDefaultLogo}
-                  className="text-xs text-rose-600 hover:text-rose-700 font-medium inline-flex items-center gap-1.5 transition-colors mt-1"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  Rétablir le logo par défaut
-                </button>
-              )}
+
+              <div className="flex flex-wrap items-center gap-4 pt-1 justify-center sm:justify-start">
+                {logoPreview && (
+                  <button
+                    type="button"
+                    onClick={handleResetToDefaultLogo}
+                    className="text-xs text-rose-600 hover:text-rose-700 font-medium inline-flex items-center gap-1.5 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Rétablir le logo d'origine
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Format du Logo : Carré (Square) ou Rectangle */}
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-slate-700">
+              Format / Forme du Logo (Logo Shape)
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSettings({ ...settings, logoShape: 'rectangle' })}
+                className={`p-4 rounded-xl border text-left flex items-start gap-3 transition-all ${
+                  !isSquare 
+                    ? 'border-slate-900 bg-slate-900/5 ring-1 ring-slate-900' 
+                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                }`}
+              >
+                <div className={`p-2 rounded-lg shrink-0 ${!isSquare ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                  <RectangleHorizontal className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                    Format Rectangle (Bannière / Horizontal)
+                    {!isSquare && <Check className="w-4 h-4 text-emerald-600" />}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Idéal pour les logos larges, bannières et signatures horizontales.
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSettings({ ...settings, logoShape: 'square' })}
+                className={`p-4 rounded-xl border text-left flex items-start gap-3 transition-all ${
+                  isSquare 
+                    ? 'border-slate-900 bg-slate-900/5 ring-1 ring-slate-900' 
+                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                }`}
+              >
+                <div className={`p-2 rounded-lg shrink-0 ${isSquare ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                  <Square className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                    Format Carré (Square / Icône)
+                    {isSquare && <Check className="w-4 h-4 text-emerald-600" />}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Idéal pour les emblèmes, badges ronds/carrés ou favicons (1:1).
+                  </p>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -212,7 +301,7 @@ export function AdminSettings() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-semibold text-slate-700">
-                Source du Logo
+                Importer le Logo
               </label>
               <div className="flex bg-slate-100 p-1 rounded-lg text-xs font-medium">
                 <button
@@ -241,7 +330,7 @@ export function AdminSettings() {
                 <label className="flex-1 w-full border-2 border-dashed border-slate-300 hover:border-slate-400 bg-slate-50/50 hover:bg-slate-50 rounded-xl p-4 flex items-center justify-center gap-3 cursor-pointer transition-colors">
                   <Upload className="w-5 h-5 text-slate-500 shrink-0" />
                   <span className="text-sm font-medium text-slate-700">
-                    Sélectionner une image de logo depuis votre appareil
+                    Sélectionner une image depuis votre appareil (PNG, JPG, SVG, WebP)
                   </span>
                   <input
                     ref={fileInputRef}
@@ -272,31 +361,79 @@ export function AdminSettings() {
             )}
           </div>
 
-          {/* Store Name & Subtitle */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                Nom de la boutique (Store Name)
-              </label>
-              <input
-                type="text"
-                value={settings.storeName || ''}
-                onChange={(e) => setSettings({ ...settings, storeName: e.target.value })}
-                placeholder="Ex: VISIOTTICA"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 font-medium"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                Sous-titre / Slogan (Subtitle)
-              </label>
-              <input
-                type="text"
-                value={settings.storeSubtitle || ''}
-                onChange={(e) => setSettings({ ...settings, storeSubtitle: e.target.value })}
-                placeholder="Ex: EYEWEAR ou OPTIQUE DE LUXE"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-              />
+          {/* Options d'affichage du Nom et Sous-titre */}
+          <div className="border-t border-slate-100 pt-5 space-y-4">
+            <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              Affichage du Nom et Sous-titre (Header & Site)
+            </h4>
+            <p className="text-xs text-slate-500">
+              Choisissez si vous voulez que le nom de la marque et le sous-titre apparaissent à côté de votre logo ou si votre logo contient déjà le texte.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Option Nom */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="toggle-name" className="text-sm font-semibold text-slate-900 cursor-pointer flex items-center gap-2">
+                    {showName ? <Eye className="w-4 h-4 text-emerald-600" /> : <EyeOff className="w-4 h-4 text-slate-400" />}
+                    Afficher le Nom
+                  </label>
+                  <input
+                    id="toggle-name"
+                    type="checkbox"
+                    checked={showName}
+                    onChange={(e) => setSettings({ ...settings, showStoreName: e.target.checked })}
+                    className="w-4 h-4 text-slate-900 rounded focus:ring-slate-900 border-slate-300"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    value={settings.storeName || ''}
+                    disabled={!showName}
+                    onChange={(e) => setSettings({ ...settings, storeName: e.target.value })}
+                    placeholder="Ex: VISIOTTICA"
+                    className={`w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 font-medium ${
+                      !showName ? 'opacity-50 cursor-not-allowed bg-slate-100' : ''
+                    }`}
+                  />
+                  <span className="text-[11px] text-slate-400 mt-1 block">
+                    {showName ? 'Visible à côté du logo' : 'Masqué (seul le logo est visible)'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Option Sous-titre */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="toggle-subtitle" className="text-sm font-semibold text-slate-900 cursor-pointer flex items-center gap-2">
+                    {showSubtitle ? <Eye className="w-4 h-4 text-emerald-600" /> : <EyeOff className="w-4 h-4 text-slate-400" />}
+                    Afficher le Sous-titre
+                  </label>
+                  <input
+                    id="toggle-subtitle"
+                    type="checkbox"
+                    checked={showSubtitle}
+                    onChange={(e) => setSettings({ ...settings, showStoreSubtitle: e.target.checked })}
+                    className="w-4 h-4 text-slate-900 rounded focus:ring-slate-900 border-slate-300"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    value={settings.storeSubtitle || ''}
+                    disabled={!showSubtitle}
+                    onChange={(e) => setSettings({ ...settings, storeSubtitle: e.target.value })}
+                    placeholder="Ex: EYEWEAR ou OPTIQUE"
+                    className={`w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 ${
+                      !showSubtitle ? 'opacity-50 cursor-not-allowed bg-slate-100' : ''
+                    }`}
+                  />
+                  <span className="text-[11px] text-slate-400 mt-1 block">
+                    {showSubtitle ? 'Affiché en majuscules sous le nom' : 'Masqué'}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -346,7 +483,7 @@ export function AdminSettings() {
           {settingsSavedSuccess && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-medium flex items-center gap-2">
               <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-              Paramètres de marque et identifiants enregistrés avec succès ! Le logo est mis à jour sur tout le site.
+              Paramètres de marque et identifiants enregistrés avec succès ! Le logo et le header sont mis à jour.
             </div>
           )}
 

@@ -1,77 +1,80 @@
 {
-  "projectInfo": {
-    "name": "Optica Store"
-  },
+  "$schema": "https://firebase.google.com/schemas/firestore-blueprint.json",
   "collections": [
     {
       "name": "frames",
-      "description": "Store optical frames",
+      "description": "Collection of eyewear frames/glasses",
       "fields": [
         { "name": "name", "type": "string" },
         { "name": "brand", "type": "string" },
         { "name": "price", "type": "number" },
-        { "name": "image", "type": "string" },
-        { "name": "category", "type": "string" },
-        { "name": "shape", "type": "string" },
-        { "name": "colors", "type": "array", "items": { "type": "string" } }
-      ],
-      "rules": {
-        "read": "true",
-        "create": "false",
-        "update": "false",
-        "delete": "false"
-      }
-    },
-    {
-      "name": "treatments",
-      "description": "Store lens treatments",
-      "fields": [
-        { "name": "name", "type": "string" },
+        { "name": "images", "type": "array" },
         { "name": "description", "type": "string" },
-        { "name": "price", "type": "number" }
+        { "name": "category", "type": "string" },
+        { "name": "featured", "type": "boolean" },
+        { "name": "tags", "type": "array" },
+        { "name": "frameShape", "type": "string" },
+        { "name": "frameColor", "type": "string" },
+        { "name": "material", "type": "string" },
+        { "name": "gender", "type": "string" },
+        { "name": "inStock", "type": "boolean" },
+        { "name": "createdAt", "type": "timestamp" }
       ],
       "rules": {
         "read": "true",
-        "create": "false",
-        "update": "false",
-        "delete": "false"
+        "create": "true",
+        "update": "true",
+        "delete": "true"
       }
     },
     {
       "name": "stories",
-      "description": "Store Sold items with old and new prices",
+      "description": "Short video/photo stories showcasing glasses",
       "fields": [
         { "name": "title", "type": "string" },
-        { "name": "image", "type": "string" },
-        { "name": "oldPrice", "type": "number" },
-        { "name": "newPrice", "type": "number" }
+        { "name": "mediaUrl", "type": "string" },
+        { "name": "mediaType", "type": "string" },
+        { "name": "thumbnailUrl", "type": "string" },
+        { "name": "duration", "type": "number" },
+        { "name": "createdAt", "type": "timestamp" },
+        { "name": "order", "type": "number" },
+        { "name": "frameId", "type": "string" },
+        { "name": "brand", "type": "string" }
       ],
       "rules": {
         "read": "true",
-        "create": "false",
-        "update": "false",
-        "delete": "false"
+        "create": "true",
+        "update": "true",
+        "delete": "true"
+      }
+    },
+    {
+      "name": "brands",
+      "description": "Optical brands showcase",
+      "fields": [
+        { "name": "name", "type": "string" },
+        { "name": "logoUrl", "type": "string" },
+        { "name": "country", "type": "string" },
+        { "name": "order", "type": "number" },
+        { "name": "createdAt", "type": "timestamp" }
+      ],
+      "rules": {
+        "read": "true",
+        "create": "true",
+        "update": "true",
+        "delete": "true"
       }
     },
     {
       "name": "orders",
-      "description": "Store customer orders with Algerian province and commune delivery details",
+      "description": "Customer frame orders",
       "fields": [
-        { "name": "frameId", "type": "string" },
-        { "name": "frameName", "type": "string" },
         { "name": "customerName", "type": "string" },
-        { "name": "customerPhone", "type": "string" },
+        { "name": "phone", "type": "string" },
+        { "name": "address", "type": "string" },
         { "name": "wilaya", "type": "string" },
-        { "name": "wilayaCode", "type": "string" },
-        { "name": "wilayaName", "type": "string" },
         { "name": "commune", "type": "string" },
-        { "name": "addressDetails", "type": "string" },
-        { "name": "deliveryMethod", "type": "string" },
-        { "name": "needsCorrectingLenses", "type": "boolean" },
-        { "name": "leftSph", "type": "string" },
-        { "name": "leftCyl", "type": "string" },
-        { "name": "rightSph", "type": "string" },
-        { "name": "rightCyl", "type": "string" },
+        { "name": "items", "type": "array" },
         { "name": "status", "type": "string" },
         { "name": "totalAmount", "type": "number" },
         { "name": "createdAt", "type": "timestamp" }
@@ -85,9 +88,12 @@
     },
     {
       "name": "settings",
-      "description": "Store branding logo, store name, subtitle, and integration tokens",
+      "description": "Store branding logo, shape, text visibility, and integration tokens",
       "fields": [
         { "name": "logoUrl", "type": "string" },
+        { "name": "logoShape", "type": "string" },
+        { "name": "showStoreName", "type": "boolean" },
+        { "name": "showStoreSubtitle", "type": "boolean" },
         { "name": "storeName", "type": "string" },
         { "name": "storeSubtitle", "type": "string" },
         { "name": "uploadthingToken", "type": "string" },
