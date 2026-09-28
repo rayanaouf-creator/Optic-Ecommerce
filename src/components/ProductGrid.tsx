@@ -248,14 +248,19 @@ export function ProductGrid() {
                     ) : null}
                   </div>
 
-                  {/* Sexe & Tranche d'âge Pill Bottom-Left */}
-                  <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+                  {/* Sexe & Tranche d'âge & Group Pill Bottom-Left */}
+                  <div className="absolute bottom-3 left-3 flex items-center gap-1.5 flex-wrap max-w-[85%]">
                     <span className="bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-medium px-2 py-0.5 rounded-md">
                       {genderText}
                     </span>
                     {frame.ageGroup === 'Kid' && (
                       <span className="bg-amber-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-md">
                         Enfant
+                      </span>
+                    )}
+                    {frame.groupNames && frame.groupNames.length > 0 && (
+                      <span className="bg-indigo-600/90 backdrop-blur-xs text-white text-[10px] font-semibold px-2 py-0.5 rounded-md shadow-xs">
+                        {frame.groupNames[0]}
                       </span>
                     )}
                   </div>

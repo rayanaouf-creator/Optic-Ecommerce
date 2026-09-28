@@ -12,6 +12,8 @@ import { AdminBrands } from './components/admin/AdminBrands';
 import { AdminFrames } from './components/admin/AdminFrames';
 import { AdminOrders } from './components/admin/AdminOrders';
 import { AdminSettings } from './components/admin/AdminSettings';
+import { AdminGroups } from './components/admin/AdminGroups';
+import { AdminDelivery } from './components/admin/AdminDelivery';
 import { subscribeToStoreSettings } from './lib/storeSettings';
 
 function StoreLayout() {
@@ -65,8 +67,10 @@ export default function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="delivery" element={<AdminDelivery />} />
             <Route path="products" element={<AdminFrames />} />
             <Route path="frames" element={<AdminFrames />} />
+            <Route path="groups" element={<AdminGroups />} />
             <Route path="stories" element={<AdminStories />} />
             <Route path="brands" element={<AdminBrands />} />
             <Route path="settings" element={<AdminSettings />} />

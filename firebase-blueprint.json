@@ -20,7 +20,26 @@
         { "name": "inStock", "type": "boolean" },
         { "name": "lowStockThreshold", "type": "number" },
         { "name": "sku", "type": "string" },
+        { "name": "groupIds", "type": "array" },
+        { "name": "groupNames", "type": "array" },
         { "name": "featured", "type": "boolean" },
+        { "name": "createdAt", "type": "timestamp" }
+      ],
+      "rules": {
+        "read": "true",
+        "create": "true",
+        "update": "true",
+        "delete": "true"
+      }
+    },
+    {
+      "name": "groups",
+      "description": "Product groups / collections to organize and tag items",
+      "fields": [
+        { "name": "name", "type": "string" },
+        { "name": "description", "type": "string" },
+        { "name": "color", "type": "string" },
+        { "name": "order", "type": "number" },
         { "name": "createdAt", "type": "timestamp" }
       ],
       "rules": {

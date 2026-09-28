@@ -16,6 +16,16 @@ export interface Frame {
   inStock?: boolean;              // Whether the item is available for order
   sku?: string;                   // Optional SKU/Reference code
   lowStockThreshold?: number;     // Alert threshold (default: 3)
+  groupIds?: string[];            // Assigned product group IDs
+  groupNames?: string[];          // Denormalized assigned group names
+}
+
+export interface ProductGroup {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string; // Accent color token: 'indigo' | 'emerald' | 'amber' | 'rose' | 'sky' | 'purple' | 'slate'
+  createdAt?: any;
 }
 
 export interface Prescription {

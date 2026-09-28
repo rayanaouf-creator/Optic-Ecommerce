@@ -1,17 +1,21 @@
 import React from "react";
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { Frame, Brand, Gender, AgeGroup } from '../../types';
+import { Frame, Brand, Gender, AgeGroup, ProductGroup } from '../../types';
 import { 
   Trash2, Plus, Upload, Link as LinkIcon, Edit2, X, Check, 
-  Package, AlertTriangle, Search, ShieldAlert, Minus, UserCheck, Baby
+  Package, AlertTriangle, Search, ShieldAlert, Minus, UserCheck, Baby,
+  FolderTree
 } from 'lucide-react';
 import { compressImage } from '../../lib/imageUtils';
+import { getGroupColorClasses } from './AdminGroups';
 
 export function AdminFrames() {
   const [frames, setFrames] = useState<Frame[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [groups, setGroups] = useState<ProductGroup[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Filter & Search state
@@ -20,6 +24,7 @@ export function AdminFrames() {
   const [filterBrand, setFilterBrand] = useState('all');
   const [filterGender, setFilterGender] = useState<'all' | Gender>('all');
   const [filterAgeGroup, setFilterAgeGroup] = useState<'all' | AgeGroup>('all');
+  const [filterGroup, setFilterGroup] = useState('all');
 
   // Form state for adding
   const [inputType, setInputType] = useState<'upload' | 'url'>('upload');
@@ -31,9 +36,10 @@ export function AdminFrames() {
   const [customBrandName, setCustomBrandName] = useState('');
   const [price, setPrice] = useState('');
   
-  // Sex & Tranche d'âge
+  // Sex & Tranche d'âge & Groups
   const [gender, setGender] = useState<Gender>('Unisex');
   const [ageGroup, setAgeGroup] = useState<AgeGroup>('Adult');
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
   const [shape, setShape] = useState<'Round' | 'Square' | 'Aviator' | 'Cat Eye'>('Square');
   const [colors, setColors] = useState('');
   
@@ -52,6 +58,7 @@ export function AdminFrames() {
   const [editPrice, setEditPrice] = useState('');
   const [editGender, setEditGender] = useState<Gender>('Unisex');
   const [editAgeGroup, setEditAgeGroup] = useState<AgeGroup>('Adult');
+  const [editGroupIds, setEditGroupIds] = useState<string[]>([]);
   const [editShape, setEditShape] = useState<'Round' | 'Square' | 'Aviator' | 'Cat Eye'>('Square');
   const [editColors, setEditColors] = useState('');
   const [editStockQuantity, setEditStockQuantity] = useState('10');
@@ -69,7 +76,18 @@ export function AdminFrames() {
   useEffect(() => {
     fetchFrames();
     fetchBrands();
+    fetchGroups();
   }, []);
+
+  async function fetchGroups() {
+    try {
+      const snap = await getDocs(collection(db, 'groups'));
+      const groupsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as ProductGroup));
+      setGroups(groupsData);
+    } catch (err) {
+      console.error('Error fetching groups:', err);
+    }
+  }
 
   async function fetchBrands() {
     try {
@@ -118,7 +136,9 @@ export function AdminFrames() {
           stockQuantity: qty,
           inStock: inStockVal,
           lowStockThreshold: data.lowStockThreshold !== undefined ? Number(data.lowStockThreshold) : 3,
-          sku: data.sku || ''
+          sku: data.sku || '',
+          groupIds: Array.isArray(data.groupIds) ? data.groupIds : [],
+          groupNames: Array.isArray(data.groupNames) ? data.groupNames : []
         } as Frame;
       });
       setFrames(framesData);
@@ -152,6 +172,10 @@ export function AdminFrames() {
       const parsedStock = Math.max(0, parseInt(stockQuantity, 10) || 0);
       const parsedThreshold = Math.max(1, parseInt(lowStockThreshold, 10) || 3);
       
+      const assignedGroupNames = selectedGroupIds
+        .map(gid => groups.find(g => g.id === gid)?.name || '')
+        .filter(Boolean);
+
       const newFrame: Omit<Frame, 'id'> = {
         name: name.trim(),
         brand: finalBrand,
@@ -165,7 +189,9 @@ export function AdminFrames() {
         stockQuantity: parsedStock,
         inStock: parsedStock > 0,
         lowStockThreshold: parsedThreshold,
-        sku: sku.trim() || `OPT-${Date.now().toString().slice(-6)}`
+        sku: sku.trim() || `OPT-${Date.now().toString().slice(-6)}`,
+        groupIds: selectedGroupIds,
+        groupNames: assignedGroupNames
       };
       
       const docRef = await addDoc(collection(db, 'frames'), newFrame);
@@ -181,6 +207,7 @@ export function AdminFrames() {
       setIsCustomBrand(false);
       setGender('Unisex');
       setAgeGroup('Adult');
+      setSelectedGroupIds([]);
       setStockQuantity('10');
       setLowStockThreshold('3');
       setSku('');
@@ -204,6 +231,7 @@ export function AdminFrames() {
     setEditPrice(frame.price.toString());
     setEditGender(frame.gender || (frame.category as any) || 'Unisex');
     setEditAgeGroup(frame.ageGroup || 'Adult');
+    setEditGroupIds(frame.groupIds || []);
     setEditShape((frame.shape as any) || 'Square');
     setEditColors(frame.colors ? frame.colors.join(', ') : '');
     const currentQty = frame.stockQuantity !== undefined ? frame.stockQuantity : 10;
@@ -237,6 +265,10 @@ export function AdminFrames() {
       const parsedThreshold = Math.max(1, parseInt(editLowStockThreshold, 10) || 3);
       const calculatedInStock = parsedStock > 0 ? editInStock : false;
 
+      const assignedGroupNames = editGroupIds
+        .map(gid => groups.find(g => g.id === gid)?.name || '')
+        .filter(Boolean);
+
       const updatedData = {
         name: editName.trim(),
         brand: editBrand.trim(),
@@ -250,7 +282,9 @@ export function AdminFrames() {
         stockQuantity: parsedStock,
         inStock: calculatedInStock,
         lowStockThreshold: parsedThreshold,
-        sku: editSku.trim()
+        sku: editSku.trim(),
+        groupIds: editGroupIds,
+        groupNames: assignedGroupNames
       };
 
       await updateDoc(doc(db, 'frames', editingFrame.id), updatedData);
@@ -334,11 +368,13 @@ export function AdminFrames() {
     const matchesSearch = 
       f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (f.brand && f.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (f.sku && f.sku.toLowerCase().includes(searchQuery.toLowerCase()));
+      (f.sku && f.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (f.groupNames && f.groupNames.some(gn => gn.toLowerCase().includes(searchQuery.toLowerCase())));
 
     const matchesBrand = filterBrand === 'all' || f.brand === filterBrand;
     const matchesGender = filterGender === 'all' || f.gender === filterGender;
     const matchesAgeGroup = filterAgeGroup === 'all' || f.ageGroup === filterAgeGroup;
+    const matchesGroup = filterGroup === 'all' || (f.groupIds && f.groupIds.includes(filterGroup));
 
     const qty = f.stockQuantity !== undefined ? f.stockQuantity : 10;
     const th = f.lowStockThreshold || 3;
@@ -351,7 +387,7 @@ export function AdminFrames() {
     if (filterStockStatus === 'low_stock') matchesStock = isLow;
     if (filterStockStatus === 'out_of_stock') matchesStock = isOut;
 
-    return matchesSearch && matchesBrand && matchesGender && matchesAgeGroup && matchesStock;
+    return matchesSearch && matchesBrand && matchesGender && matchesAgeGroup && matchesGroup && matchesStock;
   });
 
   if (loading) {
@@ -616,6 +652,58 @@ export function AdminFrames() {
                   placeholder="Ex: #000000, #C0C0C0, Gold, Brown"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                 />
+              </div>
+
+              {/* Group Assignment in Edit Modal */}
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <FolderTree className="w-3.5 h-3.5 text-indigo-600" />
+                    Groupes de Produits (Collections)
+                  </label>
+                  <Link 
+                    to="/admin/groups" 
+                    target="_blank" 
+                    className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                  >
+                    + Gérer les groupes &rarr;
+                  </Link>
+                </div>
+
+                {groups.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic">
+                    Aucun groupe créé. Créez des groupes dans l'onglet "Groupes" de la barre latérale pour les assigner ici.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {groups.map(g => {
+                      const isSelected = editGroupIds.includes(g.id);
+                      const colorMeta = getGroupColorClasses(g.color);
+                      return (
+                        <button
+                          key={g.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setEditGroupIds(editGroupIds.filter(id => id !== g.id));
+                            } else {
+                              setEditGroupIds([...editGroupIds, g.id]);
+                            }
+                          }}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                            isSelected 
+                              ? `${colorMeta.bg} ${colorMeta.text} ring-2 ring-slate-900 shadow-2xs` 
+                              : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'
+                          }`}
+                        >
+                          <span className={`w-2 h-2 rounded-full ${isSelected ? colorMeta.bg : 'bg-slate-300'}`} />
+                          {g.name}
+                          {isSelected && <Check className="w-3 h-3 ml-0.5" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Photo Source Switcher */}
@@ -892,6 +980,58 @@ export function AdminFrames() {
                 </select>
               </div>
             </div>
+
+            {/* Group Assignment in Add Form */}
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <FolderTree className="w-3.5 h-3.5 text-indigo-600" />
+                  Groupes de Produits (Collections)
+                </label>
+                <Link 
+                  to="/admin/groups" 
+                  target="_blank" 
+                  className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                >
+                  + Gérer les groupes &rarr;
+                </Link>
+              </div>
+
+              {groups.length === 0 ? (
+                <p className="text-xs text-slate-400 italic">
+                  Aucun groupe créé. Créez des groupes dans l'onglet "Groupes" de la barre latérale pour les assigner ici.
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {groups.map(g => {
+                    const isSelected = selectedGroupIds.includes(g.id);
+                    const colorMeta = getGroupColorClasses(g.color);
+                    return (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedGroupIds(selectedGroupIds.filter(id => id !== g.id));
+                          } else {
+                            setSelectedGroupIds([...selectedGroupIds, g.id]);
+                          }
+                        }}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          isSelected 
+                            ? `${colorMeta.bg} ${colorMeta.text} ring-2 ring-slate-900 shadow-2xs` 
+                            : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'
+                        }`}
+                      >
+                        <span className={`w-2 h-2 rounded-full ${isSelected ? colorMeta.bg : 'bg-slate-300'}`} />
+                        {g.name}
+                        {isSelected && <Check className="w-3 h-3 ml-0.5" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="col-span-1 md:col-span-4 mt-2 flex items-center justify-between">
@@ -977,7 +1117,19 @@ export function AdminFrames() {
               ))}
             </select>
 
-            {(searchQuery || filterStockStatus !== 'all' || filterBrand !== 'all' || filterGender !== 'all' || filterAgeGroup !== 'all') && (
+            {/* Filter Groupes */}
+            <select
+              value={filterGroup}
+              onChange={e => setFilterGroup(e.target.value)}
+              className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900"
+            >
+              <option value="all">Tous les groupes</option>
+              {groups.map(g => (
+                <option key={g.id} value={g.id}>{g.name}</option>
+              ))}
+            </select>
+
+            {(searchQuery || filterStockStatus !== 'all' || filterBrand !== 'all' || filterGender !== 'all' || filterAgeGroup !== 'all' || filterGroup !== 'all') && (
               <button
                 onClick={() => {
                   setSearchQuery('');
@@ -985,6 +1137,7 @@ export function AdminFrames() {
                   setFilterBrand('all');
                   setFilterGender('all');
                   setFilterAgeGroup('all');
+                  setFilterGroup('all');
                 }}
                 className="text-xs text-rose-600 hover:text-rose-700 font-medium px-2 py-1"
               >
@@ -1000,6 +1153,7 @@ export function AdminFrames() {
               <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
                 <th className="px-5 py-3.5">Produit</th>
                 <th className="px-4 py-3.5">Public & Tranche d'âge</th>
+                <th className="px-4 py-3.5">Groupes</th>
                 <th className="px-4 py-3.5">Réf / Marque</th>
                 <th className="px-4 py-3.5">Prix</th>
                 <th className="px-4 py-3.5 text-center">Quantité (Qty)</th>
@@ -1054,6 +1208,29 @@ export function AdminFrames() {
                           {ageLabel}
                         </span>
                       </div>
+                    </td>
+
+                    {/* Assigned Groups */}
+                    <td className="px-4 py-3.5">
+                      {frame.groupIds && frame.groupIds.length > 0 ? (
+                        <div className="flex flex-wrap gap-1 max-w-[170px]">
+                          {frame.groupIds.map(gid => {
+                            const matched = groups.find(g => g.id === gid);
+                            const name = matched ? matched.name : (frame.groupNames ? frame.groupNames[frame.groupIds!.indexOf(gid)] : 'Groupe');
+                            const colorMeta = getGroupColorClasses(matched?.color);
+                            return (
+                              <span 
+                                key={gid} 
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${colorMeta.bg} ${colorMeta.text}`}
+                              >
+                                {name}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 text-xs italic">Sans groupe</span>
+                      )}
                     </td>
 
                     {/* Brand & SKU */}
@@ -1153,11 +1330,11 @@ export function AdminFrames() {
               })}
               {filteredFrames.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
                     <div className="flex flex-col items-center justify-center">
                       <Package className="w-8 h-8 text-slate-300 mb-2" />
                       <p className="font-medium text-slate-700">Aucun produit trouvé</p>
-                      <p className="text-xs text-slate-400 mt-0.5">Essayez de modifier vos filtres (sexe, tranche d'âge, marque ou recherche).</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Essayez de modifier vos filtres (sexe, tranche d'âge, groupe, marque ou recherche).</p>
                     </div>
                   </td>
                 </tr>

@@ -1,7 +1,7 @@
 import React from "react";
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Package, ShoppingCart, LayoutDashboard, Settings, LogOut, Camera, Lock, Menu, X } from 'lucide-react';
+import { Package, ShoppingCart, LayoutDashboard, Settings, LogOut, Camera, Lock, Menu, X, FolderTree, Truck } from 'lucide-react';
 import logoImg from '../../assets/logo.jpg';
 import { subscribeToStoreSettings, getLocalCachedSettings, StoreSettings } from '../../lib/storeSettings';
 
@@ -41,7 +41,9 @@ export function AdminLayout() {
   const links = [
     { name: 'Tableau de bord', path: '/admin', icon: LayoutDashboard },
     { name: 'Produits', path: '/admin/products', icon: Package },
+    { name: 'Groupes', path: '/admin/groups', icon: FolderTree },
     { name: 'Commandes', path: '/admin/orders', icon: ShoppingCart },
+    { name: 'Livraisons', path: '/admin/delivery', icon: Truck },
     { name: 'Stories Vidéo', path: '/admin/stories', icon: Camera },
     { name: 'Marques Partenaires', path: '/admin/brands', icon: Package },
     { name: 'Paramètres', path: '/admin/settings', icon: Settings },
